@@ -13,7 +13,8 @@ public class CommandRegistry {
             Map.entry("RPUSH",new RPUSHcommand()),
             Map.entry("LRANGE",new LRANGEcommand()),
             Map.entry("LPUSH",new LPUSHcommand()),
-            Map.entry("LLEN",new LLENcommand())
+            Map.entry("LLEN",new LLENcommand()),
+            Map.entry("LPOP",new LPOPcommand())
     );
 
     public static Command getCommand(String name) {
