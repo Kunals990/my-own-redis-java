@@ -6,7 +6,8 @@ import java.util.Map;
 
 public class CommandRegistry {
     private static final Map<String, Command> commandMap = Map.ofEntries(
-            Map.entry("PING", new PINGcommand())
+            Map.entry("PING", new PINGcommand()),
+            Map.entry("ECHO",new ECHOcommand())
     );
 
     public static Command getCommand(String name) {
