@@ -9,7 +9,8 @@ public class CommandRegistry {
             Map.entry("PING", new PINGcommand()),
             Map.entry("ECHO",new ECHOcommand()),
             Map.entry("SET",new SETcommand()),
-            Map.entry("GET",new GETcommand())
+            Map.entry("GET",new GETcommand()),
+            Map.entry("RPUSH",new RPUSHcommand())
     );
 
     public static Command getCommand(String name) {
