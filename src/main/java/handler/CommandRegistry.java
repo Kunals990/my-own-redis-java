@@ -10,7 +10,8 @@ public class CommandRegistry {
             Map.entry("ECHO",new ECHOcommand()),
             Map.entry("SET",new SETcommand()),
             Map.entry("GET",new GETcommand()),
-            Map.entry("RPUSH",new RPUSHcommand())
+            Map.entry("RPUSH",new RPUSHcommand()),
+            Map.entry("LRANGE",new LRANGEcommand())
     );
 
     public static Command getCommand(String name) {
