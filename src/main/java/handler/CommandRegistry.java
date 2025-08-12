@@ -12,7 +12,8 @@ public class CommandRegistry {
             Map.entry("GET",new GETcommand()),
             Map.entry("RPUSH",new RPUSHcommand()),
             Map.entry("LRANGE",new LRANGEcommand()),
-            Map.entry("LPUSH",new LPUSHcommand())
+            Map.entry("LPUSH",new LPUSHcommand()),
+            Map.entry("LLEN",new LLENcommand())
     );
 
     public static Command getCommand(String name) {
