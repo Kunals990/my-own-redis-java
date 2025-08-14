@@ -2,11 +2,11 @@ package handler.commands;
 
 import handler.BlockingClientManager;
 import handler.Command;
+import handler.CommandContext;
 import store.StreamEntry;
 import store.StreamStore;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +16,13 @@ public class XADDcommand implements Command {
     private final BlockingClientManager blockingManager = BlockingClientManager.getInstance();
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
-        if (args.size() < 5 || (args.size() - 3) % 2 != 0) {
+    public String execute(CommandContext commandContext) throws IOException {
+        if (commandContext.args.size() < 5 || (commandContext.args.size() - 3) % 2 != 0) {
             return "-ERR wrong number of arguments for 'XADD'\r\n";
         }
 
-        String streamKey = args.get(1);
-        String rawId     = args.get(2);
+        String streamKey = commandContext.args.get(1);
+        String rawId     = commandContext.args.get(2);
 
         String finalId;
         try {
@@ -32,8 +32,8 @@ public class XADDcommand implements Command {
         }
 
         Map<String, String> entryFields = new LinkedHashMap<>();
-        for (int i = 3; i < args.size(); i += 2) {
-            entryFields.put(args.get(i), args.get(i + 1));
+        for (int i = 3; i < commandContext.args.size(); i += 2) {
+            entryFields.put(commandContext.args.get(i), commandContext.args.get(i + 1));
         }
 
         streamStore.addEntry(streamKey, finalId, entryFields);

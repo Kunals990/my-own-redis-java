@@ -1,11 +1,11 @@
 package handler.commands;
 
 import handler.Command;
+import handler.CommandContext;
 import store.StreamEntry;
 import store.StreamStore;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,14 +14,14 @@ public class XRANGEcommand implements Command {
     private final StreamStore streamStore = StreamStore.getInstance();
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
-        if (args.size() != 4) {
+    public String execute(CommandContext commandContext) throws IOException {
+        if (commandContext.args.size() != 4) {
             return "-ERR wrong number of arguments for 'xrange' command\r\n";
         }
 
-        String streamKey = args.get(1);
-        String startRaw = args.get(2);
-        String endRaw = args.get(3);
+        String streamKey = commandContext.args.get(1);
+        String startRaw = commandContext.args.get(2);
+        String endRaw = commandContext.args.get(3);
 
         List<StreamEntry> entries = streamStore.getStream(streamKey);
         if (entries == null || entries.isEmpty()) {

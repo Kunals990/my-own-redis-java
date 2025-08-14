@@ -1,3 +1,4 @@
+import handler.ClientState;
 import handler.CommandHandler;
 
 import java.io.IOException;
@@ -7,10 +8,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -104,7 +102,7 @@ public class Main {
 
                       for (List<String> commandParts : result.getCommands()) {
                           System.out.println("Parsed command: " + commandParts);
-                          String response = CommandHandler.handle(commandParts, clientChannel);
+                          String response = CommandHandler.handle(commandParts,clientState,clientChannel);
                           if (response != null) {
                               clientChannel.write(ByteBuffer.wrap(response.getBytes()));
                           }
@@ -128,6 +126,3 @@ public class Main {
 }
 
 
-class ClientState {
-    StringBuilder readBuffer = new StringBuilder();
-}

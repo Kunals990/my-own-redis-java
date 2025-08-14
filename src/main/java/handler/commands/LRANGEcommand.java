@@ -1,10 +1,10 @@
 package handler.commands;
 
 import handler.Command;
+import handler.CommandContext;
 import store.ListStore;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 public class LRANGEcommand implements Command {
@@ -12,17 +12,17 @@ public class LRANGEcommand implements Command {
     ListStore listStore = ListStore.getInstance();
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
-        if(args.size()<4) return "-ERR wrong number of arguments for 'LRANGE'\r\n";
+    public String execute(CommandContext commandContext) throws IOException {
+        if(commandContext.args.size()<4) return "-ERR wrong number of arguments for 'LRANGE'\r\n";
 
-        String key = args.get(1);
+        String key = commandContext.args.get(1);
         List<String> list = listStore.getList(key);
 
         if (list == null || list.isEmpty()) return "*0\r\n";
 
         int size = list.size();
-        int start = Integer.parseInt(args.get(2));
-        int stop = Integer.parseInt(args.get(3));
+        int start = Integer.parseInt(commandContext.args.get(2));
+        int stop = Integer.parseInt(commandContext.args.get(3));
 
         // Handle negative indices
         if (start < 0) start = size + start;

@@ -1,14 +1,12 @@
 package handler.commands;
 
 import handler.Command;
-
-import java.nio.channels.SocketChannel;
-import java.util.List;
+import handler.CommandContext;
 
 public class PINGcommand implements Command {
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) {
+    public String execute(CommandContext commandContext) {
         return "+PONG\r\n";
     }
 }

@@ -3,11 +3,11 @@ package handler.commands;
 import handler.BlockedClient;
 import handler.BlockingClientManager;
 import handler.Command;
+import handler.CommandContext;
 import store.ListStore;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 public class RPUSHcommand implements Command {
@@ -16,11 +16,11 @@ public class RPUSHcommand implements Command {
     private final BlockingClientManager blockingManager = BlockingClientManager.getInstance();
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
-        if(args.size()<3) return "-ERR wrong number of arguments for 'RPUSH'\r\n";
+    public String execute(CommandContext commandContext) throws IOException {
+        if(commandContext.args.size()<3) return "-ERR wrong number of arguments for 'RPUSH'\r\n";
 
-        String key=args.get(1);
-        List<String> values = args.subList(2, args.size());
+        String key=commandContext.args.get(1);
+        List<String> values = commandContext.args.subList(2, commandContext.args.size());
 
         int newListLength = listStore.appendToList(key, values);
 

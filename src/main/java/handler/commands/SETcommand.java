@@ -1,32 +1,31 @@
 package handler.commands;
 
 import handler.Command;
+import handler.CommandContext;
 import store.KeyValueStore;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
-import java.util.List;
 
 public class SETcommand implements Command {
 
     KeyValueStore store = KeyValueStore.getInstance();
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
-        if (args.size() < 3) return "-ERR wrong number of arguments for 'set'\r\n";
+    public String execute(CommandContext commandContext) throws IOException {
+        if (commandContext.args.size() < 3) return "-ERR wrong number of arguments for 'set'\r\n";
 
         int expiry = -1; // -1 means no expiry
 
-        if (args.size() == 5 && args.get(3).equalsIgnoreCase("PX")) {
+        if (commandContext.args.size() == 5 && commandContext.args.get(3).equalsIgnoreCase("PX")) {
             try {
-                expiry = Integer.parseInt(args.get(4));
+                expiry = Integer.parseInt(commandContext.args.get(4));
             } catch (NumberFormatException e) {
                 return "-ERR PX value is not a valid integer\r\n";
             }
         }
 
-        String key = args.get(1);
-        String value = args.get(2);
+        String key = commandContext.args.get(1);
+        String value = commandContext.args.get(2);
 
         store.set(key,value,expiry);
 

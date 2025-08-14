@@ -1,10 +1,10 @@
 package handler.commands;
 
 import handler.Command;
+import handler.CommandContext;
 import store.ListStore;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 public class LPOPcommand implements Command {
@@ -12,18 +12,18 @@ public class LPOPcommand implements Command {
     ListStore listStore = ListStore.getInstance();
 
     @Override
-    public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
-        if(args.size()<2) return "-ERR wrong number of arguments for 'LPOP'\r\n";
+    public String execute(CommandContext commandContext) throws IOException {
+        if(commandContext.args.size()<2) return "-ERR wrong number of arguments for 'LPOP'\r\n";
 
-        String key = args.get(1);
+        String key = commandContext.args.get(1);
 
         List<String> list = listStore.getList(key);
         if(list==null || list.isEmpty()) return "$-1\r\n";
 
         int noOfElements = 1;
-        if (args.size() == 3) {
+        if (commandContext.args.size() == 3) {
             try {
-                noOfElements = Integer.parseInt(args.get(2));
+                noOfElements = Integer.parseInt(commandContext.args.get(2));
                 if (noOfElements <= 0) return "-ERR value is out of range, must be positive\r\n";
             } catch (NumberFormatException e) {
                 return "-ERR invalid number format\r\n";
