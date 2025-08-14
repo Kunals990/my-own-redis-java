@@ -20,7 +20,8 @@ public class CommandRegistry {
             Map.entry("XADD",new XADDcommand()),
             Map.entry("XRANGE",new XRANGEcommand()),
             Map.entry("XREAD",new XREADcommand()),
-            Map.entry("INCR",new INCRcommand())
+            Map.entry("INCR",new INCRcommand()),
+            Map.entry("MULTI",new MULTIcommand())
     );
 
     public static Command getCommand(String name) {
