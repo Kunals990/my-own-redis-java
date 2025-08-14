@@ -17,6 +17,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import handler.TimeoutCheckerTask;
+import parser.IncompleteCommandException;
+import parser.ParseResult;
 import parser.RESPParser;
 
 public class Main {
@@ -65,13 +67,14 @@ public class Main {
 
                   if (clientChannel != null) {
                       clientChannel.configureBlocking(false);
-                      clientChannel.register(selector, SelectionKey.OP_READ);
+                      clientChannel.register(selector, SelectionKey.OP_READ,new ClientState());
                       System.out.println("Accepted new client: " + clientChannel.getRemoteAddress());
                   }
               }
 
               if (key.isReadable()) {
                   SocketChannel clientChannel = (SocketChannel) key.channel();
+                  ClientState clientState = (ClientState) key.attachment();
                   ByteBuffer buffer = ByteBuffer.allocate(1024);
 
                   int bytesRead = -1;
@@ -94,20 +97,26 @@ public class Main {
 
                   // Process the input
                   buffer.flip();
-                  String input = new String(buffer.array(), 0, buffer.limit()).trim();
-                  System.out.println("Received: " + input);
-
+                  clientState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
                   try{
-                      List<String> commandParts = RESPParser.parse(input);
-                      System.out.println("Parsed command: "+commandParts);
+                      ParseResult result = RESPParser.parse(clientState.readBuffer.toString());
+                      clientState.readBuffer.delete(0, result.getConsumedBytes());
 
-                      String response = CommandHandler.handle(commandParts,clientChannel);
-                      if (response != null) {
-                          clientChannel.write(ByteBuffer.wrap(response.getBytes()));
+                      for (List<String> commandParts : result.getCommands()) {
+                          System.out.println("Parsed command: " + commandParts);
+                          String response = CommandHandler.handle(commandParts, clientChannel);
+                          if (response != null) {
+                              clientChannel.write(ByteBuffer.wrap(response.getBytes()));
+                          }
                       }
 
-                  } catch (RuntimeException e) {
-                      throw new RuntimeException(e);
+                  }catch (IncompleteCommandException e){
+
+                  }
+                  catch (RuntimeException e) {
+                      System.err.println("Error processing command: " + e.getMessage());
+                      clientChannel.write(ByteBuffer.wrap("-ERR command processing failed\r\n".getBytes()));
+                      clientState.readBuffer.setLength(0);
                   }
               }
 
@@ -116,4 +125,9 @@ public class Main {
       }
 
   }
+}
+
+
+class ClientState {
+    StringBuilder readBuffer = new StringBuilder();
 }

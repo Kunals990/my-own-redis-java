@@ -5,35 +5,54 @@ import java.util.List;
 
 public class RESPParser {
 
-    public static List<String> parse(String input) {
-        List<String> args = new ArrayList<>();
+    public static ParseResult parse(String input) throws IncompleteCommandException {
+        List<List<String>> commands = new ArrayList<>();
+        int consumed = 0;
 
-        if (!input.startsWith("*")) {
-            throw new IllegalArgumentException("Not a valid RESP array");
-        }
+        while (consumed < input.length()) {
+            int startOfCommand = consumed;
 
-        String[] lines = input.split("\r\n");
-
-        int i = 0;
-        if (!lines[i].startsWith("*")) {
-            throw new IllegalArgumentException("Expected array header");
-        }
-
-        int numArgs = Integer.parseInt(lines[i++].substring(1));
-
-        while (i < lines.length && args.size() < numArgs) {
-            if (!lines[i].startsWith("$")) {
-                throw new IllegalArgumentException("Expected bulk string");
+            if (input.charAt(startOfCommand) != '*') {
+                throw new IllegalArgumentException("Invalid command format: Must start with '*'");
             }
 
-            int length = Integer.parseInt(lines[i++].substring(1));
-            if (i >= lines.length || lines[i].length() != length) {
-                throw new IllegalArgumentException("Invalid bulk string length");
+            int endOfLine = input.indexOf("\r\n", startOfCommand);
+            if (endOfLine == -1) {
+                throw new IncompleteCommandException();
             }
 
-            args.add(lines[i++]);
+            // Parse the number of arguments in the array
+            int numArgs = Integer.parseInt(input.substring(startOfCommand + 1, endOfLine));
+            consumed = endOfLine + 2;
+
+            List<String> commandParts = new ArrayList<>();
+            for (int i = 0; i < numArgs; i++) {
+                if (consumed >= input.length() || input.charAt(consumed) != '$') {
+                    throw new IllegalArgumentException("Invalid bulk string format: Must start with '$'");
+                }
+
+                endOfLine = input.indexOf("\r\n", consumed);
+                if (endOfLine == -1) {
+                    throw new IncompleteCommandException();
+                }
+
+                // Parse the length of the bulk string
+                int stringLength = Integer.parseInt(input.substring(consumed + 1, endOfLine));
+                consumed = endOfLine + 2;
+
+                // Check if the entire bulk string has arrived
+                if (consumed + stringLength + 2 > input.length()) {
+                    throw new IncompleteCommandException();
+                }
+
+                // Extract the bulk string
+                String argument = input.substring(consumed, consumed + stringLength);
+                commandParts.add(argument);
+                consumed += stringLength + 2; // Add 2 for the final \r\n
+            }
+            commands.add(commandParts);
         }
 
-        return args;
+        return new ParseResult(commands, consumed);
     }
 }
