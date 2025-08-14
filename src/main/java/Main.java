@@ -29,8 +29,13 @@ public class Main {
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("--port") && i + 1 < args.length) {
-                port = Integer.parseInt(args[i + 1]);
-                i++;
+                try {
+                    port = Integer.parseInt(args[i + 1]);
+                    i++;
+                } catch (NumberFormatException e) {
+                    System.err.println("Error: Invalid port number. Please provide an integer.");
+                    return;
+                }
             }
         }
 

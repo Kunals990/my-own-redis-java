@@ -22,7 +22,8 @@ public class CommandRegistry {
             Map.entry("XREAD",new XREADcommand()),
             Map.entry("INCR",new INCRcommand()),
             Map.entry("MULTI",new MULTIcommand()),
-            Map.entry("EXEC",new EXECcommand())
+            Map.entry("EXEC",new EXECcommand()),
+            Map.entry("INFO",new INFOcommand())
     );
 
     public static Command getCommand(String name) {
