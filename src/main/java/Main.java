@@ -9,11 +9,22 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import handler.TimeoutCheckerTask;
 import parser.RESPParser;
 
 public class Main {
-  public static void main(String[] args) throws IOException {
+
+    public static final Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
+    private static Selector selector;
+
+    public static void main(String[] args) throws IOException {
       int port = 6379;
 
       ServerSocketChannel serverChannel = ServerSocketChannel.open();
@@ -24,9 +35,21 @@ public class Main {
       Selector selector = Selector.open();
       serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
+      ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.scheduleAtFixedRate(() -> {
+            taskQueue.add(new TimeoutCheckerTask());
+            selector.wakeup();
+        }, 100, 100, TimeUnit.MILLISECONDS);
+
       //Event Loop
       while(true){
           selector.select(); // Wait until some channels are ready
+
+          Runnable task;
+          while ((task = taskQueue.poll()) != null) {
+              task.run();
+          }
 
           Set<SelectionKey> selectedKeys = selector.selectedKeys();
           Iterator<SelectionKey> iter = selectedKeys.iterator();

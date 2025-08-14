@@ -13,18 +13,18 @@ public class ListStore {
         return INSTANCE;
     }
 
-    public String appendToList(String key, List<String> values) {
+    public int appendToList(String key, List<String> values) {
         List<String> list = listStore.computeIfAbsent(key, k -> new ArrayList<>());
         list.addAll(values);
-        return ":" + list.size() + "\r\n";
+        return list.size();
     }
 
-    public String appendToListFront(String key,List<String>values){
+    public int appendToListFront(String key,List<String>values){
         List<String> list = listStore.computeIfAbsent(key, k -> new ArrayList<>());
         for (String value : values) {
             list.addFirst(value);
         }
-        return ":" + list.size() + "\r\n";
+        return list.size() ;
     }
 
     public List<String> getList(String key) {
