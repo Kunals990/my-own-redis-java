@@ -17,7 +17,8 @@ public class CommandRegistry {
             Map.entry("LPOP",new LPOPcommand()),
             Map.entry("BLPOP",new BLPOPcommand()),
             Map.entry("TYPE",new TYPEcommand()),
-            Map.entry("XADD",new XADDcommand())
+            Map.entry("XADD",new XADDcommand()),
+            Map.entry("XRANGE",new XRANGEcommand())
     );
 
     public static Command getCommand(String name) {
