@@ -27,6 +27,13 @@ public class Main {
     public static void main(String[] args) throws IOException {
       int port = 6379;
 
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("--port") && i + 1 < args.length) {
+                port = Integer.parseInt(args[i + 1]);
+                i++;
+            }
+        }
+
       ServerSocketChannel serverChannel = ServerSocketChannel.open();
       serverChannel.configureBlocking(false);
       serverChannel.socket().bind(new InetSocketAddress(port));
