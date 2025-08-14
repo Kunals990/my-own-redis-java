@@ -15,7 +15,8 @@ public class CommandRegistry {
             Map.entry("LPUSH",new LPUSHcommand()),
             Map.entry("LLEN",new LLENcommand()),
             Map.entry("LPOP",new LPOPcommand()),
-            Map.entry("BLPOP",new BLPOPcommand())
+            Map.entry("BLPOP",new BLPOPcommand()),
+            Map.entry("TYPE",new TYPEcommand())
     );
 
     public static Command getCommand(String name) {
