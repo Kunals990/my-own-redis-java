@@ -1,5 +1,6 @@
 package handler.commands;
 
+import config.ReplicationInfo;
 import handler.Command;
 import handler.CommandContext;
 
@@ -13,7 +14,8 @@ public class INFOcommand implements Command {
         }
         String section = commandContext.args.get(1).toLowerCase();
         if ("replication".equals(section)) {
-            String content = "role:master";
+            ReplicationInfo replicationInfo = ReplicationInfo.getInstance();
+            String content = "role:" + replicationInfo.getRole();
             return "$" + content.length() + "\r\n" + content + "\r\n";
         }
         return "$0\r\n\r\n";

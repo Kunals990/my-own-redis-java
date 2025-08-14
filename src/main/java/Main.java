@@ -1,3 +1,4 @@
+import config.ReplicationInfo;
 import handler.ClientState;
 import handler.CommandHandler;
 
@@ -36,6 +37,22 @@ public class Main {
                     System.err.println("Error: Invalid port number. Please provide an integer.");
                     return;
                 }
+            }
+            else if (args[i].equals("--replicaof") && i + 1 < args.length) {
+                String[] replicaOfArgs = args[i + 1].split(" ");
+                if (replicaOfArgs.length != 2) {
+                    System.err.println("Error: Invalid --replicaof format. Use '--replicaof <host> <port>'.");
+                    return;
+                }
+                String masterHost = replicaOfArgs[0];
+                try {
+                    int masterPort = Integer.parseInt(replicaOfArgs[1]);
+                    ReplicationInfo.getInstance().setReplicaOf(masterHost, masterPort);
+                } catch (NumberFormatException e) {
+                    System.err.println("Error: Invalid master port number in --replicaof.");
+                    return;
+                }
+                i++;
             }
         }
 
