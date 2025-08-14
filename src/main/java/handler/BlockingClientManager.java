@@ -24,6 +24,7 @@ public class BlockingClientManager {
         Queue<BlockedClient> queue = waitingClients.get(key);
         if (queue != null) {
             BlockedClient client = queue.poll();
+
             if (queue.isEmpty()) {
                 waitingClients.remove(key, queue);
             }
