@@ -1,5 +1,6 @@
 package handler.commands;
 
+import handler.BlockingClientManager;
 import handler.Command;
 import store.StreamEntry;
 import store.StreamStore;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 public class XADDcommand implements Command {
     private final StreamStore streamStore = StreamStore.getInstance();
+    private final BlockingClientManager blockingManager = BlockingClientManager.getInstance();
 
     @Override
     public String execute(List<String> args, SocketChannel clientChannel) throws IOException {
@@ -35,6 +37,7 @@ public class XADDcommand implements Command {
         }
 
         streamStore.addEntry(streamKey, finalId, entryFields);
+        blockingManager.unblockClientsForStream(streamKey);
 
         return "$" + finalId.length() + "\r\n" + finalId + "\r\n";
     }
