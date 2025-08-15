@@ -146,7 +146,8 @@ public class Main {
 
                           for (List<String> commandParts : result.getCommands()) {
                               System.out.println("Parsed command: " + commandParts);
-                              String response = CommandHandler.handle(commandParts,clientState,clientChannel);
+                              CommandContext cmdContext = new CommandContext(commandParts, clientChannel, clientState);
+                              String response = CommandHandler.handle(cmdContext);
                               if (response != null) {
                                   clientChannel.write(ByteBuffer.wrap(response.getBytes()));
                               }
@@ -195,7 +196,7 @@ public class Main {
                                   String commandName = commandParts.get(0).toUpperCase();
                                   Command command = CommandRegistry.getCommand(commandName);
                                   if (command != null) {
-                                      CommandContext context = new CommandContext(commandParts, masterChannel, new ClientState());
+                                      CommandContext context = new CommandContext(commandParts, masterChannel, null);
                                       command.execute(context); // Execute but ignore reply
                                   }
                               }

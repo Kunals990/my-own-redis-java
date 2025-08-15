@@ -13,31 +13,31 @@ public class CommandHandler {
             "SET","DEL","LPUSH","RPUSH","XADD"
     );
 
-    public static String handle(List<String> args, ClientState clientState,SocketChannel clientChannel) throws IOException {
-        if (args.isEmpty()) {
+    public static String handle(CommandContext cmdContext) throws IOException {
+        if (cmdContext.args.isEmpty()) {
             return "-ERR Empty command\r\n";
         }
 
-        String commandName = args.get(0).toUpperCase();
+        String commandName = cmdContext.args.get(0).toUpperCase();
         Command command = CommandRegistry.getCommand(commandName);
-        CommandContext context = new CommandContext(args, clientChannel, clientState);
+        CommandContext context = new CommandContext(cmdContext.args, cmdContext.clientChannel, cmdContext.clientState);
 
-        if (clientState.inTransaction) {
+        if (cmdContext.clientState.inTransaction) {
             if (commandName.equalsIgnoreCase("EXEC")) {
                 return command.execute(context);
             } else if (commandName.equalsIgnoreCase("DISCARD")) {
-                clientState.transactionQueue.clear();
-                clientState.inTransaction = false;
+                cmdContext.clientState.transactionQueue.clear();
+                cmdContext.clientState.inTransaction = false;
                 return "+OK\r\n";
             } else if (commandName.equalsIgnoreCase("MULTI")) {
                 return "-ERR MULTI calls can not be nested\r\n";
             } else {
-                clientState.transactionQueue.add(args);
+                cmdContext.clientState.transactionQueue.add(cmdContext.args);
                 return "+QUEUED\r\n";
             }
         } else {
             if (commandName.equalsIgnoreCase("MULTI")) {
-                clientState.inTransaction = true;
+                cmdContext.clientState.inTransaction = true;
                 return command.execute(context);
             } else if (commandName.equals("EXEC") || commandName.equals("DISCARD")) {
                 return "-ERR " + commandName + " without MULTI\r\n";

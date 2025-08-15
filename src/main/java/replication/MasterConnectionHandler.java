@@ -95,9 +95,6 @@ public class MasterConnectionHandler implements Runnable {
         String pysncCmd = buildRespArray("PSYNC","?","-1");
         outputStream.write(pysncCmd.getBytes());
 
-        bytesRead = inputStream.read(buffer);
-        String response3=new String(buffer,0,bytesRead);
-
         System.out.println("Handshake part 3 completed successfully.");
 
     }
