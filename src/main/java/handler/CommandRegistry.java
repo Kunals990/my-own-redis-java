@@ -23,7 +23,8 @@ public class CommandRegistry {
             Map.entry("INCR",new INCRcommand()),
             Map.entry("MULTI",new MULTIcommand()),
             Map.entry("EXEC",new EXECcommand()),
-            Map.entry("INFO",new INFOcommand())
+            Map.entry("INFO",new INFOcommand()),
+            Map.entry("REPLCONF",new REPLCONFcommand())
     );
 
     public static Command getCommand(String name) {
