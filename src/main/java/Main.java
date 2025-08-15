@@ -1,4 +1,5 @@
 import config.ReplicationInfo;
+import config.ServerContext;
 import handler.ClientState;
 import handler.CommandHandler;
 
@@ -19,11 +20,13 @@ import handler.TimeoutCheckerTask;
 import parser.IncompleteCommandException;
 import parser.ParseResult;
 import parser.RESPParser;
+import replication.MasterConnectionHandler;
 
 public class Main {
 
     public static final Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
     private static Selector selector;
+
 
     public static void main(String[] args) throws IOException {
       int port = 6379;
@@ -64,6 +67,17 @@ public class Main {
       Selector selector = Selector.open();
       serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
+      ServerContext serverContext = new ServerContext(selector, taskQueue);
+        ReplicationInfo replicationInfo = ReplicationInfo.getInstance();
+        if ("slave".equals(replicationInfo.getRole())) {
+            MasterConnectionHandler handler = new MasterConnectionHandler(
+                    replicationInfo.getMasterHost(),
+                    replicationInfo.getMasterPort(),
+                    serverContext
+            );
+            new Thread(handler).start();
+        }
+
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
         scheduler.scheduleAtFixedRate(() -> {
@@ -100,51 +114,61 @@ public class Main {
               }
 
               if (key.isReadable()) {
-                  SocketChannel clientChannel = (SocketChannel) key.channel();
-                  ClientState clientState = (ClientState) key.attachment();
-                  ByteBuffer buffer = ByteBuffer.allocate(1024);
+                  Object attachment = key.attachment();
+                  if (attachment instanceof ClientState) {
+                      SocketChannel clientChannel = (SocketChannel) key.channel();
+                      ClientState clientState = (ClientState) key.attachment();
+                      ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-                  int bytesRead = -1;
-                  try {
-                      bytesRead = clientChannel.read(buffer);
-                  } catch (IOException e) {
-                      // Client closed unexpectedly
-                      key.cancel();
-                      clientChannel.close();
-                      continue;
-                  }
-
-                  if (bytesRead == -1) {
-                      // Client closed connection
-                      System.out.println("Client disconnected: " + clientChannel.getRemoteAddress());
-                      key.cancel();
-                      clientChannel.close();
-                      continue;
-                  }
-
-                  // Process the input
-                  buffer.flip();
-                  clientState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
-                  try{
-                      ParseResult result = RESPParser.parse(clientState.readBuffer.toString());
-                      clientState.readBuffer.delete(0, result.getConsumedBytes());
-
-                      for (List<String> commandParts : result.getCommands()) {
-                          System.out.println("Parsed command: " + commandParts);
-                          String response = CommandHandler.handle(commandParts,clientState,clientChannel);
-                          if (response != null) {
-                              clientChannel.write(ByteBuffer.wrap(response.getBytes()));
-                          }
+                      int bytesRead = -1;
+                      try {
+                          bytesRead = clientChannel.read(buffer);
+                      } catch (IOException e) {
+                          // Client closed unexpectedly
+                          key.cancel();
+                          clientChannel.close();
+                          continue;
                       }
 
-                  }catch (IncompleteCommandException e){
+                      if (bytesRead == -1) {
+                          // Client closed connection
+                          System.out.println("Client disconnected: " + clientChannel.getRemoteAddress());
+                          key.cancel();
+                          clientChannel.close();
+                          continue;
+                      }
 
+                      // Process the input
+                      buffer.flip();
+                      clientState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
+                      try{
+                          ParseResult result = RESPParser.parse(clientState.readBuffer.toString());
+                          clientState.readBuffer.delete(0, result.getConsumedBytes());
+
+                          for (List<String> commandParts : result.getCommands()) {
+                              System.out.println("Parsed command: " + commandParts);
+                              String response = CommandHandler.handle(commandParts,clientState,clientChannel);
+                              if (response != null) {
+                                  clientChannel.write(ByteBuffer.wrap(response.getBytes()));
+                              }
+                          }
+
+                      }catch (IncompleteCommandException e){
+
+                      }
+                      catch (RuntimeException e) {
+                          System.err.println("Error processing command: " + e.getMessage());
+                          clientChannel.write(ByteBuffer.wrap("-ERR command processing failed\r\n".getBytes()));
+                          clientState.readBuffer.setLength(0);
+                      }
                   }
-                  catch (RuntimeException e) {
-                      System.err.println("Error processing command: " + e.getMessage());
-                      clientChannel.write(ByteBuffer.wrap("-ERR command processing failed\r\n".getBytes()));
-                      clientState.readBuffer.setLength(0);
+                  else if(attachment instanceof handler.MasterConnectionState){
+                      System.out.println("Received data from master.");
+                      SocketChannel masterChannel = (SocketChannel) key.channel();
+                      ByteBuffer buffer = ByteBuffer.allocate(1024);
+                      masterChannel.read(buffer);
                   }
+
               }
 
           }

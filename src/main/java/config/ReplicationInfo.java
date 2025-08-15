@@ -32,4 +32,12 @@ public class ReplicationInfo {
         this.masterHost = host;
         this.masterPort = port;
     }
+
+    public String getMasterHost(){
+        return masterHost;
+    }
+
+    public int getMasterPort(){
+        return masterPort;
+    }
 }
