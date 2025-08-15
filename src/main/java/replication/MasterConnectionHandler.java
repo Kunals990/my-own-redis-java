@@ -90,6 +90,16 @@ public class MasterConnectionHandler implements Runnable {
 
         System.out.println("Handshake part 2 completed successfully.");
 
+        System.out.println("Performing handshake: Sending PSYNC ...");
+
+        String pysncCmd = buildRespArray("PSYNC","?","-1");
+        outputStream.write(pysncCmd.getBytes());
+
+        bytesRead = inputStream.read(buffer);
+        String response3=new String(buffer,0,bytesRead);
+
+        System.out.println("Handshake part 3 completed successfully.");
+
     }
 
     private String buildRespArray(String... args) {
