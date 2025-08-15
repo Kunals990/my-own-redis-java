@@ -31,7 +31,8 @@ public class EXECcommand implements Command {
         while(!commands.isEmpty()){
             List<String> commandArgs=commands.poll();
             String commandName = commandArgs.get(0).toUpperCase();
-            String result = CommandHandler.handle(commandArgs,commandContext.clientState,commandContext.clientChannel);
+            CommandContext cmdCommand = new CommandContext(commandArgs,commandContext.clientChannel,commandContext.clientState);
+            String result = CommandHandler.handle(cmdCommand);
             results.add(result.trim());
 
             if (WRITE_COMMANDS.contains(commandName)) {
