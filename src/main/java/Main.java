@@ -1,7 +1,6 @@
 import config.ReplicationInfo;
 import config.ServerContext;
-import handler.ClientState;
-import handler.CommandHandler;
+import handler.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -16,7 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import handler.TimeoutCheckerTask;
 import parser.IncompleteCommandException;
 import parser.ParseResult;
 import parser.RESPParser;
@@ -164,10 +162,50 @@ public class Main {
                       }
                   }
                   else if(attachment instanceof handler.MasterConnectionState){
-                      System.out.println("Received data from master.");
+                      MasterConnectionState masterState = (MasterConnectionState) attachment;
                       SocketChannel masterChannel = (SocketChannel) key.channel();
                       ByteBuffer buffer = ByteBuffer.allocate(1024);
-                      masterChannel.read(buffer);
+                      try {
+                          int bytesRead = masterChannel.read(buffer);
+                          if (bytesRead == -1) {
+                              key.cancel(); masterChannel.close(); continue;
+                          }
+
+                          buffer.flip();
+                          masterState.replicationBuffer.append(new String(buffer.array(), 0, buffer.limit()));
+
+                          if (!masterState.initialSyncCompleted) {
+                              // We are waiting for the RDB file.
+                              int rdbEndIndex = findRdbFileEnd(masterState.replicationBuffer);
+                              if (rdbEndIndex != -1) {
+                                  System.out.println("RDB file received, consuming it.");
+                                  // We found the end of the RDB file. Consume it from the buffer.
+                                  masterState.replicationBuffer.delete(0, rdbEndIndex);
+                                  masterState.initialSyncCompleted = true;
+                              }
+                          }
+
+                          if (masterState.initialSyncCompleted) {
+                              // Now that the RDB is handled, we can process any subsequent commands.
+                              ParseResult result = RESPParser.parse(masterState.replicationBuffer.toString());
+                              masterState.replicationBuffer.delete(0, result.getConsumedBytes());
+
+                              for (List<String> commandParts : result.getCommands()) {
+                                  System.out.println("Processing command from master: " + commandParts);
+                                  String commandName = commandParts.get(0).toUpperCase();
+                                  Command command = CommandRegistry.getCommand(commandName);
+                                  if (command != null) {
+                                      CommandContext context = new CommandContext(commandParts, masterChannel, new ClientState());
+                                      command.execute(context); // Execute but ignore reply
+                                  }
+                              }
+                          }
+
+                      } catch (IncompleteCommandException e) {
+                          // Wait for more data
+                      } catch (Exception e) {
+                          System.err.println("Error in replication stream: " + e.getMessage());
+                      }
                   }
 
               }
@@ -177,6 +215,27 @@ public class Main {
       }
 
   }
+
+    private static int findRdbFileEnd(StringBuilder buffer) {
+        if (buffer.length() == 0 || buffer.charAt(0) != '$') {
+            return -1;
+        }
+        int lineEnd = buffer.indexOf("\r\n");
+        if (lineEnd == -1) {
+            return -1;
+        }
+        try {
+            int length = Integer.parseInt(buffer.substring(1, lineEnd));
+            int totalLength = lineEnd + 2 + length;
+            if (buffer.length() >= totalLength) {
+                return totalLength;
+            }
+        } catch (NumberFormatException e) {
+            // Invalid length format
+            return -1;
+        }
+        return -1;
+    }
 }
 
 
