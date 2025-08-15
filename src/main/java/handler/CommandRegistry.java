@@ -24,7 +24,8 @@ public class CommandRegistry {
             Map.entry("MULTI",new MULTIcommand()),
             Map.entry("EXEC",new EXECcommand()),
             Map.entry("INFO",new INFOcommand()),
-            Map.entry("REPLCONF",new REPLCONFcommand())
+            Map.entry("REPLCONF",new REPLCONFcommand()),
+            Map.entry("PSYNC",new PSYNCcommand())
     );
 
     public static Command getCommand(String name) {
