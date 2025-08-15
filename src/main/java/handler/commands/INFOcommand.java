@@ -15,7 +15,13 @@ public class INFOcommand implements Command {
         String section = commandContext.args.get(1).toLowerCase();
         if ("replication".equals(section)) {
             ReplicationInfo replicationInfo = ReplicationInfo.getInstance();
-            String content = "role:" + replicationInfo.getRole();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("role:").append(replicationInfo.getRole()).append("\r\n");
+            sb.append("master_replid:").append(replicationInfo.getMasterReplid()).append("\r\n");
+            sb.append("master_repl_offset:").append(replicationInfo.getMasterReplOffset());
+
+            String content = sb.toString();
             return "$" + content.length() + "\r\n" + content + "\r\n";
         }
         return "$0\r\n\r\n";
