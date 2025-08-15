@@ -25,9 +25,13 @@ public class PSYNCcommand implements Command {
             commandContext.clientChannel.write(ByteBuffer.wrap(fullResyncResponse.getBytes()));
             commandContext.clientChannel.write(ByteBuffer.wrap(rdbHeader.getBytes()));
             commandContext.clientChannel.write(ByteBuffer.wrap(rdbFileBytes));
+
+            replicationInfo.addReplica(commandContext.clientChannel);
+
+            return null;
         }
 
-        return null;
+        return "-ERR Not a valid PSYNC command for this stage\r\n";
     }
     private static byte[] hexStringToByteArray(String s) {
         int len = s.length();

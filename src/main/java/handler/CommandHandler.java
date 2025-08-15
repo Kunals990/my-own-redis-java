@@ -1,10 +1,17 @@
 package handler;
 
+import config.ReplicationInfo;
+
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.Set;
 
 public class CommandHandler {
+
+    private static final Set<String> WRITE_COMMANDS = Set.of(
+            "SET","DEL","LPUSH","RPUSH","XADD"
+    );
 
     public static String handle(List<String> args, ClientState clientState,SocketChannel clientChannel) throws IOException {
         if (args.isEmpty()) {
@@ -38,7 +45,14 @@ public class CommandHandler {
                 if (command == null) {
                     return "-ERR unknown command '" + commandName + "'\r\n";
                 }
-                return command.execute(context);
+
+                String response = command.execute(context);
+
+                if(WRITE_COMMANDS.contains(commandName)){
+                    ReplicationInfo.getInstance().propagate(context.args);
+                }
+
+                return response;
             }
 
         }

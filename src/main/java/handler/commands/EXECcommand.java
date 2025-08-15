@@ -1,5 +1,6 @@
 package handler.commands;
 
+import config.ReplicationInfo;
 import handler.Command;
 import handler.CommandContext;
 import handler.CommandHandler;
@@ -8,8 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 public class EXECcommand implements Command {
+
+    private static final Set<String> WRITE_COMMANDS = Set.of(
+            "SET","DEL","LPUSH","RPUSH","XADD"
+    );
+
     @Override
     public String execute(CommandContext commandContext) throws IOException {
 
@@ -23,8 +30,13 @@ public class EXECcommand implements Command {
         List<String> results = new ArrayList<>();
         while(!commands.isEmpty()){
             List<String> commandArgs=commands.poll();
+            String commandName = commandArgs.get(0).toUpperCase();
             String result = CommandHandler.handle(commandArgs,commandContext.clientState,commandContext.clientChannel);
             results.add(result.trim());
+
+            if (WRITE_COMMANDS.contains(commandName)) {
+                ReplicationInfo.getInstance().propagate(commandArgs);
+            }
         }
 
         commandContext.clientState.transactionQueue.clear();
