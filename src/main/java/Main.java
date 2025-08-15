@@ -73,6 +73,7 @@ public class Main {
             MasterConnectionHandler handler = new MasterConnectionHandler(
                     replicationInfo.getMasterHost(),
                     replicationInfo.getMasterPort(),
+                    port,
                     serverContext
             );
             new Thread(handler).start();
