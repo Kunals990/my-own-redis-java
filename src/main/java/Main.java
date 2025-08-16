@@ -114,33 +114,22 @@ public class Main {
 
               if (key.isReadable()) {
                   Object attachment = key.attachment();
+
+                  // This block for handling regular clients is correct.
                   if (attachment instanceof ClientState) {
                       SocketChannel clientChannel = (SocketChannel) key.channel();
-                      ClientState clientState = (ClientState) key.attachment();
+                      ClientState clientState = (ClientState) attachment;
                       ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-                      int bytesRead = -1;
                       try {
-                          bytesRead = clientChannel.read(buffer);
-                      } catch (IOException e) {
-                          // Client closed unexpectedly
-                          key.cancel();
-                          clientChannel.close();
-                          continue;
-                      }
+                          int bytesRead = clientChannel.read(buffer);
+                          if (bytesRead == -1) {
+                              key.cancel(); clientChannel.close(); continue;
+                          }
 
-                      if (bytesRead == -1) {
-                          // Client closed connection
-                          System.out.println("Client disconnected: " + clientChannel.getRemoteAddress());
-                          key.cancel();
-                          clientChannel.close();
-                          continue;
-                      }
+                          buffer.flip();
+                          clientState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
 
-                      // Process the input
-                      buffer.flip();
-                      clientState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
-                      try{
                           ParseResult result = RESPParser.parse(clientState.readBuffer.toString());
                           clientState.readBuffer.delete(0, result.getConsumedBytes());
 
@@ -152,16 +141,16 @@ public class Main {
                                   clientChannel.write(ByteBuffer.wrap(response.getBytes()));
                               }
                           }
-
-                      }catch (IncompleteCommandException e){
-
+                      } catch (IncompleteCommandException e) {
+                          // This is fine, just wait for more data.
+                      } catch (Exception e) {
+                          System.err.println("Error processing client command: " + e.getMessage());
+                          key.channel().close();
+                          key.cancel();
                       }
-                      catch (RuntimeException e) {
-                          System.err.println("Error processing command: " + e.getMessage());
-                          clientChannel.write(ByteBuffer.wrap("-ERR command processing failed\r\n".getBytes()));
-                          clientState.readBuffer.setLength(0);
-                      }
+
                   }
+                  // This is the block that needs to be replaced.
                   else if (attachment instanceof MasterConnectionState) {
                       MasterConnectionState masterState = (MasterConnectionState) attachment;
                       SocketChannel masterChannel = (SocketChannel) key.channel();
@@ -187,7 +176,7 @@ public class Main {
                                           if (line.startsWith("+FULLRESYNC")) {
                                               System.out.println("FULLRESYNC response received, consuming it.");
                                               masterState.replicationBuffer.delete(0, lineEnd + 2);
-                                              masterState.stage = SyncStage.WAITING_FOR_RDB; // Move to next stage
+                                              masterState.stage = SyncStage.WAITING_FOR_RDB;
                                           } else {
                                               stillProcessing = false;
                                           }
@@ -201,7 +190,7 @@ public class Main {
                                       if (rdbEndIndex != -1) {
                                           System.out.println("RDB file received, consuming it.");
                                           masterState.replicationBuffer.delete(0, rdbEndIndex);
-                                          masterState.stage = SyncStage.CONNECTED; // Move to final stage
+                                          masterState.stage = SyncStage.CONNECTED;
                                       } else {
                                           stillProcessing = false;
                                       }
@@ -228,13 +217,12 @@ public class Main {
                               }
                           }
                       } catch (IncompleteCommandException e) {
-                          // This is normal, just wait for more data
+                          // This is normal, just wait for more data from the master.
                       } catch (Exception e) {
                           System.err.println("Error in replication stream: " + e.getMessage());
                           e.printStackTrace();
                       }
                   }
-
               }
 
           }
