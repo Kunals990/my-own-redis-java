@@ -53,12 +53,13 @@ public class MasterConnectionHandler implements Runnable {
     private void performHandshake(SocketChannel channel) throws IOException {
         OutputStream outputStream = channel.socket().getOutputStream();
         InputStream inputStream = channel.socket().getInputStream();
-        byte[] buffer = new byte[1024];
+        byte[] buffer;
 
         System.out.println("Performing handshake: Sending PING to master...");
         String pingCommand = "*1\r\n$4\r\nPING\r\n";
         outputStream.write(pingCommand.getBytes());
 
+        buffer = new byte[1024];
         int bytesRead = inputStream.read(buffer);
         String pongResponse = new String(buffer, 0, bytesRead);
         System.out.println("Received from master: " + pongResponse.trim());
@@ -69,7 +70,7 @@ public class MasterConnectionHandler implements Runnable {
         System.out.println("Performing handshake: Sending REPLCONF listening-port...");
         String replconfPortCmd = buildRespArray("REPLCONF", "listening-port", String.valueOf(replicaPort));
         outputStream.write(replconfPortCmd.getBytes());
-
+        buffer = new byte[1024];
         bytesRead = inputStream.read(buffer);
         String okResponse1 = new String(buffer, 0, bytesRead);
         System.out.println("Received from master: " + okResponse1.trim());
@@ -80,7 +81,7 @@ public class MasterConnectionHandler implements Runnable {
         System.out.println("Performing handshake: Sending REPLCONF capa...");
         String replconfCapaCmd = buildRespArray("REPLCONF", "capa", "psync2");
         outputStream.write(replconfCapaCmd.getBytes());
-
+        buffer = new byte[1024];
         bytesRead = inputStream.read(buffer);
         String okResponse2 = new String(buffer, 0, bytesRead);
         System.out.println("Received from master: " + okResponse2.trim());
