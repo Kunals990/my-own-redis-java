@@ -162,10 +162,11 @@ public class Main {
                           clientState.readBuffer.setLength(0);
                       }
                   }
-                  else if(attachment instanceof handler.MasterConnectionState){
+                  else if (attachment instanceof MasterConnectionState) {
                       MasterConnectionState masterState = (MasterConnectionState) attachment;
                       SocketChannel masterChannel = (SocketChannel) key.channel();
                       ByteBuffer buffer = ByteBuffer.allocate(1024);
+
                       try {
                           int bytesRead = masterChannel.read(buffer);
                           if (bytesRead == -1) {
@@ -175,37 +176,62 @@ public class Main {
                           buffer.flip();
                           masterState.replicationBuffer.append(new String(buffer.array(), 0, buffer.limit()));
 
-                          if (!masterState.initialSyncCompleted) {
-                              // We are waiting for the RDB file.
-                              int rdbEndIndex = findRdbFileEnd(masterState.replicationBuffer);
-                              if (rdbEndIndex != -1) {
-                                  System.out.println("RDB file received, consuming it.");
-                                  // We found the end of the RDB file. Consume it from the buffer.
-                                  masterState.replicationBuffer.delete(0, rdbEndIndex);
-                                  masterState.initialSyncCompleted = true;
+                          // --- STATE MACHINE LOGIC ---
+                          boolean stillProcessing = true;
+                          while(stillProcessing) {
+                              switch (masterState.stage) {
+                                  case WAITING_FOR_FULLRESYNC:
+                                      int lineEnd = masterState.replicationBuffer.indexOf("\r\n");
+                                      if (lineEnd != -1) {
+                                          String line = masterState.replicationBuffer.substring(0, lineEnd);
+                                          if (line.startsWith("+FULLRESYNC")) {
+                                              System.out.println("FULLRESYNC response received, consuming it.");
+                                              masterState.replicationBuffer.delete(0, lineEnd + 2);
+                                              masterState.stage = SyncStage.WAITING_FOR_RDB; // Move to next stage
+                                          } else {
+                                              stillProcessing = false;
+                                          }
+                                      } else {
+                                          stillProcessing = false;
+                                      }
+                                      break;
+
+                                  case WAITING_FOR_RDB:
+                                      int rdbEndIndex = findRdbFileEnd(masterState.replicationBuffer);
+                                      if (rdbEndIndex != -1) {
+                                          System.out.println("RDB file received, consuming it.");
+                                          masterState.replicationBuffer.delete(0, rdbEndIndex);
+                                          masterState.stage = SyncStage.CONNECTED; // Move to final stage
+                                      } else {
+                                          stillProcessing = false;
+                                      }
+                                      break;
+
+                                  case CONNECTED:
+                                      ParseResult result = RESPParser.parse(masterState.replicationBuffer.toString());
+                                      if (result.getConsumedBytes() == 0) {
+                                          stillProcessing = false;
+                                          break;
+                                      }
+                                      masterState.replicationBuffer.delete(0, result.getConsumedBytes());
+
+                                      for (List<String> commandParts : result.getCommands()) {
+                                          System.out.println("Processing command from master: " + commandParts);
+                                          String commandName = commandParts.get(0).toUpperCase();
+                                          Command command = CommandRegistry.getCommand(commandName);
+                                          if (command != null) {
+                                              CommandContext context = new CommandContext(commandParts, masterChannel, null);
+                                              command.execute(context);
+                                          }
+                                      }
+                                      break;
                               }
                           }
-
-                          if (masterState.initialSyncCompleted) {
-                              // Now that the RDB is handled, we can process any subsequent commands.
-                              ParseResult result = RESPParser.parse(masterState.replicationBuffer.toString());
-                              masterState.replicationBuffer.delete(0, result.getConsumedBytes());
-
-                              for (List<String> commandParts : result.getCommands()) {
-                                  System.out.println("Processing command from master: " + commandParts);
-                                  String commandName = commandParts.get(0).toUpperCase();
-                                  Command command = CommandRegistry.getCommand(commandName);
-                                  if (command != null) {
-                                      CommandContext context = new CommandContext(commandParts, masterChannel, null);
-                                      command.execute(context); // Execute but ignore reply
-                                  }
-                              }
-                          }
-
                       } catch (IncompleteCommandException e) {
-                          // Wait for more data
+                          // This is normal, just wait for more data
                       } catch (Exception e) {
                           System.err.println("Error in replication stream: " + e.getMessage());
+                          e.printStackTrace();
                       }
                   }
 
@@ -232,7 +258,6 @@ public class Main {
                 return totalLength;
             }
         } catch (NumberFormatException e) {
-            // Invalid length format
             return -1;
         }
         return -1;
