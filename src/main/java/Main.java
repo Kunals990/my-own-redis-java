@@ -9,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -128,7 +129,7 @@ public class Main {
                           }
 
                           buffer.flip();
-                          clientState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
+                          clientState.readBuffer.append(StandardCharsets.UTF_8.decode(buffer));
 
                           ParseResult result = RESPParser.parse(clientState.readBuffer.toString());
                           clientState.readBuffer.delete(0, result.getConsumedBytes());
@@ -163,7 +164,7 @@ public class Main {
                           }
 
                           buffer.flip();
-                          masterState.replicationBuffer.append(new String(buffer.array(), 0, buffer.limit()));
+                          masterState.replicationBuffer.append(StandardCharsets.UTF_8.decode(buffer));
 
                           // --- STATE MACHINE LOGIC ---
                           boolean stillProcessing = true;
