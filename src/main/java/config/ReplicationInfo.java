@@ -95,4 +95,8 @@ public class ReplicationInfo {
     public void setReplOffset(int replOffset) {
         this.replOffset = replOffset;
     }
+
+    public void incrementReplOffset(int bytesProcessed) {
+        this.replOffset += bytesProcessed;
+    }
 }

@@ -189,15 +189,19 @@ public class Main {
                       masterState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
 
                       try {
-                          ParseResult result = RESPParser.parse(masterState.readBuffer.toString());
-                          masterState.readBuffer.delete(0, result.getConsumedBytes());
+                          while (true) {
+                              ParseResult result = RESPParser.parse(masterState.readBuffer.toString());
+                              int bytesConsumed = result.getConsumedBytes();
+                              masterState.readBuffer.delete(0, result.getConsumedBytes());
 
-                          for (List<String> commandParts : result.getCommands()) {
-                              System.out.println("Replica executing command from master: " + commandParts);
-                              String response =  CommandHandler.handle(commandParts, new ClientState(), masterChannel);
-                              if (response != null) {
-                                  masterChannel.write(ByteBuffer.wrap(response.getBytes()));
+                              for (List<String> commandParts : result.getCommands()) {
+                                  System.out.println("Replica executing command from master: " + commandParts);
+                                  String response = CommandHandler.handle(commandParts, new ClientState(), masterChannel);
+                                  if (response != null) {
+                                      masterChannel.write(ByteBuffer.wrap(response.getBytes()));
+                                  }
                               }
+                              ReplicationInfo.getInstance().incrementReplOffset(bytesConsumed);
                           }
                       } catch (IncompleteCommandException e) {
                       } catch (Exception e) {
