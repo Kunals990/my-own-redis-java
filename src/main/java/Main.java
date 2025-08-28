@@ -194,7 +194,10 @@ public class Main {
 
                           for (List<String> commandParts : result.getCommands()) {
                               System.out.println("Replica executing command from master: " + commandParts);
-                              CommandHandler.handle(commandParts, new ClientState(), null);
+                              String response =  CommandHandler.handle(commandParts, new ClientState(), masterChannel);
+                              if (response != null) {
+                                  masterChannel.write(ByteBuffer.wrap(response.getBytes()));
+                              }
                           }
                       } catch (IncompleteCommandException e) {
                       } catch (Exception e) {

@@ -13,12 +13,12 @@ public class REPLCONFcommand implements Command {
     @Override
     public String execute(CommandContext commandContext) throws IOException {
 
-        if(replicationInfo.getRole()=="slave"){
+        if(replicationInfo.getRole().equalsIgnoreCase("slave")){
             if(commandContext.args.get(1).equalsIgnoreCase("GETACK")){
                 return "*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$1\r\n"+replicationInfo.getReplOffset()+"\r\n";
             }
             else{
-                return "-Err not a valid command for replica\r\n";
+                return null;
             }
         }
 
