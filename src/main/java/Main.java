@@ -146,9 +146,11 @@ public class Main {
                           ParseResult result = RESPParser.parse(clientState.readBuffer.toString());
                           clientState.readBuffer.delete(0, result.getConsumedBytes());
 
-                          for (List<String> commandParts : result.getCommands()) {
+                          for (ParseResult.CommandData commandData : result.getCommandDataList()) {
+                              List<String> commandParts = commandData.getCommandParts();
+
                               System.out.println("Parsed command: " + commandParts);
-                              String response = CommandHandler.handle(commandParts,clientState,clientChannel);
+                              String response = CommandHandler.handle(commandParts, clientState, clientChannel);
                               if (response != null) {
                                   clientChannel.write(ByteBuffer.wrap(response.getBytes()));
                               }
