@@ -189,18 +189,26 @@ public class Main {
                       masterState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
 
                       try {
-                          ParseResult result = RESPParser.parse(masterState.readBuffer.toString());
-                          int bytesConsumed = result.getConsumedBytes();
-                          masterState.readBuffer.delete(0, result.getConsumedBytes());
+                          while (true) {
+                              String bufferContent = masterState.readBuffer.toString();
+                              if (bufferContent.isEmpty()) {
+                                  break;
+                              }
 
-                          for (List<String> commandParts : result.getCommands()) {
+                              ParseResult result = RESPParser.parse(bufferContent);
+                              int commandSize = result.getConsumedBytes();
+                              List<String> commandParts = result.getCommands().get(0);
+
                               System.out.println("Replica executing command from master: " + commandParts);
-                              String response =  CommandHandler.handle(commandParts, new ClientState(), masterChannel);
+                              String response = CommandHandler.handle(commandParts, new ClientState(), masterChannel);
+
                               if (response != null) {
                                   masterChannel.write(ByteBuffer.wrap(response.getBytes()));
                               }
+
+                              ReplicationInfo.getInstance().incrementReplOffset(commandSize);
+                              masterState.readBuffer.delete(0, commandSize);
                           }
-                          ReplicationInfo.getInstance().incrementReplOffset(bytesConsumed);
                       } catch (IncompleteCommandException e) {
                       } catch (Exception e) {
                           System.err.println("Error processing command from master: " + e.getMessage());
