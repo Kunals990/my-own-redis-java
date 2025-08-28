@@ -6,11 +6,12 @@ import java.util.List;
 public class RESPParser {
 
     public static ParseResult parse(String input) throws IncompleteCommandException {
-        List<List<String>> commands = new ArrayList<>();
+        // This now stores our new, more detailed CommandData objects
+        List<ParseResult.CommandData> commandDataList = new ArrayList<>();
         int consumed = 0;
 
         while (consumed < input.length()) {
-            int startOfCommand = consumed;
+            int startOfCommand = consumed; // Mark the beginning of the command
 
             if (input.charAt(startOfCommand) != '*') {
                 throw new IllegalArgumentException("Invalid command format: Must start with '*'");
@@ -21,7 +22,6 @@ public class RESPParser {
                 throw new IncompleteCommandException();
             }
 
-            // Parse the number of arguments in the array
             int numArgs = Integer.parseInt(input.substring(startOfCommand + 1, endOfLine));
             consumed = endOfLine + 2;
 
@@ -36,23 +36,21 @@ public class RESPParser {
                     throw new IncompleteCommandException();
                 }
 
-                // Parse the length of the bulk string
                 int stringLength = Integer.parseInt(input.substring(consumed + 1, endOfLine));
                 consumed = endOfLine + 2;
 
-                // Check if the entire bulk string has arrived
                 if (consumed + stringLength + 2 > input.length()) {
                     throw new IncompleteCommandException();
                 }
 
-                // Extract the bulk string
                 String argument = input.substring(consumed, consumed + stringLength);
                 commandParts.add(argument);
-                consumed += stringLength + 2; // Add 2 for the final \r\n
+                consumed += stringLength + 2;
             }
-            commands.add(commandParts);
+            int commandSize = consumed - startOfCommand;
+            commandDataList.add(new ParseResult.CommandData(commandParts, commandSize));
         }
 
-        return new ParseResult(commands, consumed);
+        return new ParseResult(commandDataList, consumed);
     }
 }

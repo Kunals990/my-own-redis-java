@@ -3,16 +3,35 @@ package parser;
 import java.util.List;
 
 public class ParseResult {
-    private final List<List<String>> commands;
+
+    public static class CommandData {
+        private final List<String> commandParts;
+        private final int commandSize;
+
+        public CommandData(List<String> commandParts, int commandSize) {
+            this.commandParts = commandParts;
+            this.commandSize = commandSize;
+        }
+
+        public List<String> getCommandParts() {
+            return commandParts;
+        }
+
+        public int getCommandSize() {
+            return commandSize;
+        }
+    }
+
+    private final List<CommandData> commandDataList;
     private final int consumedBytes;
 
-    public ParseResult(List<List<String>> commands, int consumedBytes) {
-        this.commands = commands;
+    public ParseResult(List<CommandData> commandDataList, int consumedBytes) {
+        this.commandDataList = commandDataList;
         this.consumedBytes = consumedBytes;
     }
 
-    public List<List<String>> getCommands() {
-        return commands;
+    public List<CommandData> getCommandDataList() {
+        return commandDataList;
     }
 
     public int getConsumedBytes() {
