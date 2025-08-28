@@ -1,4 +1,4 @@
-package handler.commands;
+package handler.commands.server;
 
 import handler.Command;
 import handler.CommandContext;

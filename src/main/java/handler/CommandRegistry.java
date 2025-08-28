@@ -1,6 +1,17 @@
 package handler;
 
-import handler.commands.*;
+import handler.commands.keys.KEYScommand;
+import handler.commands.lists.*;
+import handler.commands.server.*;
+import handler.commands.streams.XADDcommand;
+import handler.commands.streams.XRANGEcommand;
+import handler.commands.streams.XREADcommand;
+import handler.commands.strings.GETcommand;
+import handler.commands.strings.INCRcommand;
+import handler.commands.strings.SETcommand;
+import handler.commands.strings.TYPEcommand;
+import handler.commands.transactions.EXECcommand;
+import handler.commands.transactions.MULTIcommand;
 
 import java.util.Map;
 

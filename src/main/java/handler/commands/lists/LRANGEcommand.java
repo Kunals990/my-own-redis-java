@@ -1,4 +1,4 @@
-package handler.commands;
+package handler.commands.lists;
 
 import handler.Command;
 import handler.CommandContext;

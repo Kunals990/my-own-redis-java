@@ -1,4 +1,4 @@
-package handler.commands;
+package handler.commands.server;
 
 import config.ReplicationInfo;
 import handler.Command;

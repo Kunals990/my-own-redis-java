@@ -1,4 +1,4 @@
-package handler.commands;
+package handler.commands.transactions;
 
 import config.ReplicationInfo;
 import handler.Command;

@@ -1,4 +1,4 @@
-package handler.commands;
+package handler.commands.streams;
 
 import handler.BlockingClientManager;
 import handler.Command;

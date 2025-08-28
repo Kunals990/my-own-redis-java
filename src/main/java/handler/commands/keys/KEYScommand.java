@@ -1,11 +1,10 @@
-package handler.commands;
+package handler.commands.keys;
 
 import handler.Command;
 import handler.CommandContext;
 import store.KeyValueStore;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 public class KEYScommand implements Command {

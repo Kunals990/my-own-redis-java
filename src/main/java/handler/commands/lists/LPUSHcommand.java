@@ -1,4 +1,4 @@
-package handler.commands;
+package handler.commands.lists;
 
 import handler.BlockedClient;
 import handler.BlockingClientManager;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-public class RPUSHcommand implements Command {
+public class LPUSHcommand implements Command {
 
     ListStore listStore = ListStore.getInstance();
     private final BlockingClientManager blockingManager = BlockingClientManager.getInstance();
@@ -20,9 +20,10 @@ public class RPUSHcommand implements Command {
         if(commandContext.args.size()<3) return "-ERR wrong number of arguments for 'RPUSH'\r\n";
 
         String key=commandContext.args.get(1);
+
         List<String> values = commandContext.args.subList(2, commandContext.args.size());
 
-        int newListLength = listStore.appendToList(key, values);
+        int newListLength = listStore.appendToListFront(key, values);
 
         BlockedClient clientToUnblock = blockingManager.getNextClientToUnblock(key);
 
