@@ -263,10 +263,9 @@ public class Main {
     private static void checkPendingWaits() {
         ReplicationInfo replicationInfo = ReplicationInfo.getInstance();
 
-        var iterator = replicationInfo.getPendingWaits().iterator();
-        while (iterator.hasNext()) {
-            WaitContext wait = iterator.next();
+        List<WaitContext> completedWaits = new ArrayList<>();
 
+        for (WaitContext wait : replicationInfo.getPendingWaits()) {
             int ackCount = replicationInfo.countSynchronizedReplicas(wait.targetOffset);
             boolean timeout = System.currentTimeMillis() - wait.startTime >= wait.timeoutMillis;
 
@@ -277,9 +276,13 @@ public class Main {
                 } catch (IOException e) {
                     System.err.println("Failed to send WAIT response to client: " + e.getMessage());
                 } finally {
-                    iterator.remove();
+                    completedWaits.add(wait);
                 }
             }
+        }
+
+        if (!completedWaits.isEmpty()) {
+            replicationInfo.getPendingWaits().removeAll(completedWaits);
         }
     }
 
