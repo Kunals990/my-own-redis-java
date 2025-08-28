@@ -57,7 +57,7 @@ public class RDBParser {
         if (valueType == 0) {
             String key = readStringEncoded();
             String value = readStringEncoded();
-            KeyValueStore.getInstance().set(key, value, (int) expiryMillis);
+            KeyValueStore.getInstance().set(key, value, expiryMillis);
         }
     }
 
