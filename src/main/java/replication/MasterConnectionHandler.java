@@ -95,8 +95,41 @@ public class MasterConnectionHandler implements Runnable {
         String pysncCmd = buildRespArray("PSYNC","?","-1");
         outputStream.write(pysncCmd.getBytes());
 
-        bytesRead = inputStream.read(buffer);
-        String response3=new String(buffer,0,bytesRead);
+        StringBuilder fullResyncResponse = new StringBuilder();
+        int byteRead;
+        while ((byteRead = inputStream.read()) != -1) {
+            if (byteRead == '\n') {
+                break;
+            }
+            if (byteRead != '\r') {
+                fullResyncResponse.append((char) byteRead);
+            }
+        }
+        System.out.println("Received from master: " + fullResyncResponse.toString());
+
+        StringBuilder rdbHeader = new StringBuilder();
+        while ((byteRead = inputStream.read()) != -1) {
+            if (byteRead == '\n') {
+                break;
+            }
+            if (byteRead != '\r') {
+                rdbHeader.append((char) byteRead);
+            }
+        }
+
+        int rdbLength = Integer.parseInt(rdbHeader.substring(1));
+
+        if (rdbLength > 0) {
+            byte[] rdbContent = new byte[rdbLength];
+            int totalBytesRead = 0;
+            while (totalBytesRead < rdbLength) {
+                int result = inputStream.read(rdbContent, totalBytesRead, rdbLength - totalBytesRead);
+                if (result == -1) {
+                    throw new IOException("Master closed connection while sending RDB file.");
+                }
+                totalBytesRead += result;
+            }
+        }
 
         System.out.println("Handshake part 3 completed successfully.");
 
