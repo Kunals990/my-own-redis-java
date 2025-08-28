@@ -2,6 +2,7 @@ package handler;
 
 import handler.commands.keys.KEYScommand;
 import handler.commands.lists.*;
+import handler.commands.pubsub.SUBSCRIBEcommand;
 import handler.commands.server.*;
 import handler.commands.streams.XADDcommand;
 import handler.commands.streams.XRANGEcommand;
@@ -39,7 +40,8 @@ public class CommandRegistry {
             Map.entry("PSYNC",new PSYNCcommand()),
             Map.entry("WAIT",new WAITcommand()),
             Map.entry("CONFIG",new CONFIGcommand()),
-            Map.entry("KEYS",new KEYScommand())
+            Map.entry("KEYS",new KEYScommand()),
+            Map.entry("SUBSCRIBE",new SUBSCRIBEcommand())
     );
 
     public static Command getCommand(String name) {
