@@ -6,7 +6,6 @@ import java.util.*;
 
 public class KeyValueStore {
     private static final KeyValueStore INSTANCE = new KeyValueStore();
-
     private final Map<String, ValueWithExpiry> store = new HashMap<>();
 
     private KeyValueStore() {}
@@ -15,16 +14,15 @@ public class KeyValueStore {
         return INSTANCE;
     }
 
-    public void set(String key, String value,Integer time) {
-        Instant setTime = Instant.now();
-        store.put(key,new ValueWithExpiry(value,time,setTime));
+    public void set(String key, String value, long expiryMillis) {
+        store.put(key, new ValueWithExpiry(value, expiryMillis));
     }
 
     public String get(String key) {
         ValueWithExpiry pair = store.get(key);
-        if(pair==null) return null;
-
-        if(!pair.isExpiryPresent()) return pair.getValue();
+        if (pair == null) {
+            return null;
+        }
 
         if (pair.isExpired()) {
             store.remove(key);
@@ -33,7 +31,8 @@ public class KeyValueStore {
         return pair.getValue();
     }
 
-    public Set<String> getAllKeys(){
+    public Set<String> getAllKeys() {
+        store.entrySet().removeIf(entry -> entry.getValue().isExpired());
         return store.keySet();
     }
 
@@ -46,27 +45,25 @@ public class KeyValueStore {
 
 class ValueWithExpiry {
     private final String value;
-    private final Integer expiryMillis;
-    private final Instant createdAt;
+    private final long expiryMillis;
 
-    public ValueWithExpiry(String value, Integer time, Instant setTime) {
+    public ValueWithExpiry(String value, long expiryMillis) {
         this.value = value;
-        this.expiryMillis = time;
-        this.createdAt = setTime;
+        this.expiryMillis = expiryMillis;
     }
 
     public boolean isExpiryPresent(){
         return expiryMillis != -1;
     }
 
-    public boolean isExpired(){
-        Instant now = Instant.now();
-        long elapsed = Duration.between(createdAt, now).toMillis();
-
-        return elapsed > expiryMillis;
+    public boolean isExpired() {
+        if (expiryMillis == -1) {
+            return false;
+        }
+        return System.currentTimeMillis() > expiryMillis;
     }
 
-    public String getValue(){
+    public String getValue() {
         return this.value;
     }
 }
