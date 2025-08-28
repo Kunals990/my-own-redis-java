@@ -1,5 +1,6 @@
 package handler.commands;
 
+import config.ReplicationInfo;
 import handler.Command;
 import handler.CommandContext;
 import store.KeyValueStore;
@@ -28,6 +29,10 @@ public class SETcommand implements Command {
         String value = commandContext.args.get(2);
 
         store.set(key,value,expiry);
+
+        if(ReplicationInfo.getInstance().getRole().equalsIgnoreCase("slave")){
+            return null;
+        }
 
         return "+OK\r\n";
 

@@ -163,11 +163,44 @@ public class Main {
                           clientState.readBuffer.setLength(0);
                       }
                   }
-                  else if(attachment instanceof handler.MasterConnectionState){
-                      System.out.println("Received data from master.");
+                  else if (attachment instanceof handler.MasterConnectionState) {
                       SocketChannel masterChannel = (SocketChannel) key.channel();
+                      handler.MasterConnectionState masterState = (handler.MasterConnectionState) attachment;
                       ByteBuffer buffer = ByteBuffer.allocate(1024);
-                      masterChannel.read(buffer);
+
+                      int bytesRead = -1;
+                      try {
+                          bytesRead = masterChannel.read(buffer);
+                      } catch (IOException e) {
+                          System.err.println("Lost connection to master: " + e.getMessage());
+                          key.cancel();
+                          masterChannel.close();
+                          continue;
+                      }
+
+                      if (bytesRead == -1) {
+                          System.err.println("Master closed the connection.");
+                          key.cancel();
+                          masterChannel.close();
+                          continue;
+                      }
+
+                      buffer.flip();
+                      masterState.readBuffer.append(new String(buffer.array(), 0, buffer.limit()));
+
+                      try {
+                          ParseResult result = RESPParser.parse(masterState.readBuffer.toString());
+                          masterState.readBuffer.delete(0, result.getConsumedBytes());
+
+                          for (List<String> commandParts : result.getCommands()) {
+                              System.out.println("Replica executing command from master: " + commandParts);
+                              CommandHandler.handle(commandParts, new ClientState(), null);
+                          }
+                      } catch (IncompleteCommandException e) {
+                      } catch (Exception e) {
+                          System.err.println("Error processing command from master: " + e.getMessage());
+                          masterState.readBuffer.setLength(0);
+                      }
                   }
 
               }
