@@ -15,6 +15,8 @@ public class ReplicationInfo {
     private final String masterReplid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
     private int masterReplOffset = 0;
 
+    private int replOffset = 0;
+
     private final List<SocketChannel> replicas = new CopyOnWriteArrayList<>();
 
     private ReplicationInfo() {}
@@ -84,5 +86,13 @@ public class ReplicationInfo {
             sb.append(arg).append("\r\n");
         }
         return sb.toString();
+    }
+
+    public int getReplOffset() {
+        return replOffset;
+    }
+
+    public void setReplOffset(int replOffset) {
+        this.replOffset = replOffset;
     }
 }
