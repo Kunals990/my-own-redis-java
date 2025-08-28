@@ -15,6 +15,8 @@ public class WAITcommand implements Command {
         if (replicationInfo.getRole().equalsIgnoreCase("slave")) {
             return "-ERR WAIT command is not supported on replicas\r\n";
         }
-        return ":0\r\n";
+        int replicaCount = replicationInfo.getReplicas().size();
+
+        return ":" + replicaCount + "\r\n";
     }
 }
