@@ -3,6 +3,8 @@ package handler.commands;
 import config.ReplicationInfo;
 import handler.Command;
 import handler.CommandContext;
+import handler.ReplicaState;
+import main.Main;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,6 +29,8 @@ public class PSYNCcommand implements Command {
             commandContext.clientChannel.write(ByteBuffer.wrap(rdbFileBytes));
 
             replicationInfo.addReplica(commandContext.clientChannel);
+
+            commandContext.clientChannel.keyFor(Main.getSelector()).attach(new ReplicaState());
 
             return null;
         }

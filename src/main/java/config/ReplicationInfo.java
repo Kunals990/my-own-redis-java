@@ -1,9 +1,13 @@
 package config;
 
+import handler.WaitContext;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ReplicationInfo {
@@ -66,6 +70,7 @@ public class ReplicationInfo {
         }
 
         String commandToPropagate = buildRespArray(commandArgs);
+        this.incrementMasterOffset(commandToPropagate.getBytes().length);
         System.out.println("Propagating to " + replicas.size() + " replicas: " + commandArgs);
 
         for (SocketChannel replicaChannel : replicas) {
@@ -99,4 +104,38 @@ public class ReplicationInfo {
     public void incrementReplOffset(int bytesProcessed) {
         this.replOffset += bytesProcessed;
     }
+
+    public void incrementMasterOffset(int bytes) {
+        this.masterReplOffset += bytes;
+    }
+
+
+    private final Map<SocketChannel, Integer> replicaOffsets = new ConcurrentHashMap<>();
+
+    private final List<WaitContext> pendingWaits = new CopyOnWriteArrayList<>();
+
+    public void addPendingWait(WaitContext waitContext) {
+        pendingWaits.add(waitContext);
+    }
+    public void updateReplicaOffset(SocketChannel replicaChannel, int offset) {
+        replicaOffsets.put(replicaChannel, offset);
+    }
+    public List<WaitContext> getPendingWaits() {
+        return pendingWaits;
+    }
+
+    public int countSynchronizedReplicas(int targetOffset) {
+        if (targetOffset == 0) {
+            return replicas.size();
+        }
+
+        int count = 0;
+        for (SocketChannel replica : replicas) {
+            if (replicaOffsets.getOrDefault(replica, 0) >= targetOffset) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 }

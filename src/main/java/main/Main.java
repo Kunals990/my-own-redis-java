@@ -1,3 +1,4 @@
+package main;
 import config.ReplicationInfo;
 import config.ServerContext;
 import handler.ClientState;
@@ -17,6 +18,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import handler.TimeoutCheckerTask;
+import handler.WaitContext;
 import parser.IncompleteCommandException;
 import parser.ParseResult;
 import parser.RESPParser;
@@ -26,6 +28,10 @@ public class Main {
 
     public static final Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
     private static Selector selector;
+
+    public static Selector getSelector() {
+        return selector;
+    }
 
 
     public static void main(String[] args) throws IOException {
@@ -64,7 +70,7 @@ public class Main {
       serverChannel.socket().bind(new InetSocketAddress(port));
       System.out.println("Event-loop server started on port " + port);
 
-      Selector selector = Selector.open();
+      selector = Selector.open();
       serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
       ServerContext serverContext = new ServerContext(selector, taskQueue);
@@ -83,6 +89,7 @@ public class Main {
 
         scheduler.scheduleAtFixedRate(() -> {
             taskQueue.add(new TimeoutCheckerTask());
+            checkPendingWaits();
             selector.wakeup();
         }, 100, 100, TimeUnit.MILLISECONDS);
 
@@ -165,6 +172,37 @@ public class Main {
                           clientState.readBuffer.setLength(0);
                       }
                   }
+                  else if (attachment instanceof handler.ReplicaState) {
+                      SocketChannel replicaChannel = (SocketChannel) key.channel();
+                      ByteBuffer buffer = ByteBuffer.allocate(1024);
+
+                      try {
+                          int bytesRead = replicaChannel.read(buffer);
+                          if (bytesRead == -1) {
+                              key.cancel();
+                              replicaChannel.close();
+                              return;
+                          }
+
+                          buffer.flip();
+                          String data = new String(buffer.array(), 0, buffer.limit());
+
+                          ParseResult result = RESPParser.parse(data);
+                          for (ParseResult.CommandData commandData : result.getCommandDataList()) {
+                              List<String> commandParts = commandData.getCommandParts();
+                              if (commandParts.get(0).equalsIgnoreCase("REPLCONF") && commandParts.get(1).equalsIgnoreCase("ACK")) {
+                                  int offset = Integer.parseInt(commandParts.get(2));
+                                  ReplicationInfo.getInstance().updateReplicaOffset(replicaChannel, offset);
+                              }
+                          }
+
+                          checkPendingWaits();
+
+                      } catch (IOException | IncompleteCommandException e) {
+                          key.cancel();
+                          replicaChannel.close();
+                      }
+                  }
                   else if (attachment instanceof handler.MasterConnectionState) {
                       SocketChannel masterChannel = (SocketChannel) key.channel();
                       handler.MasterConnectionState masterState = (handler.MasterConnectionState) attachment;
@@ -221,6 +259,31 @@ public class Main {
       }
 
   }
+
+    private static void checkPendingWaits() {
+        ReplicationInfo replicationInfo = ReplicationInfo.getInstance();
+
+        var iterator = replicationInfo.getPendingWaits().iterator();
+        while (iterator.hasNext()) {
+            WaitContext wait = iterator.next();
+
+            int ackCount = replicationInfo.countSynchronizedReplicas(wait.targetOffset);
+            boolean timeout = System.currentTimeMillis() - wait.startTime >= wait.timeoutMillis;
+
+            if (ackCount >= wait.requiredReplicas || timeout) {
+                try {
+                    String response = ":" + ackCount + "\r\n";
+                    wait.clientChannel.write(ByteBuffer.wrap(response.getBytes()));
+                } catch (IOException e) {
+                    System.err.println("Failed to send WAIT response to client: " + e.getMessage());
+                } finally {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+
 }
 
 
