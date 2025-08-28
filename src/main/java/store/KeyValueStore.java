@@ -2,10 +2,7 @@ package store;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class KeyValueStore {
     private static final KeyValueStore INSTANCE = new KeyValueStore();
@@ -34,6 +31,10 @@ public class KeyValueStore {
             return null;
         }
         return pair.getValue();
+    }
+
+    public Set<String> getAllKeys(){
+        return store.keySet();
     }
 
     public void clear() {

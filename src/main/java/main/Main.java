@@ -5,6 +5,7 @@ import config.ServerContext;
 import handler.ClientState;
 import handler.CommandHandler;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -12,6 +13,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -22,6 +25,7 @@ import handler.TimeoutCheckerTask;
 import handler.WaitContext;
 import parser.IncompleteCommandException;
 import parser.ParseResult;
+import parser.RDBParser;
 import parser.RESPParser;
 import replication.MasterConnectionHandler;
 
@@ -72,6 +76,19 @@ public class Main {
             else if(args[i].equals("--dbfilename") && i + 1 < args.length){
                 ServerConfig.getInstance().setDbfilename(args[i + 1]);
                 i++;
+            }
+        }
+
+
+        ServerConfig config = ServerConfig.getInstance();
+        if (config.getDir() != null && config.getDbfilename() != null) {
+            File rdbFile = Paths.get(config.getDir(), config.getDbfilename()).toFile();
+            if (rdbFile.exists()) {
+                System.out.println("Loading RDB file...");
+                byte[] rdbBytes = Files.readAllBytes(rdbFile.toPath());
+                RDBParser parser = new RDBParser(rdbBytes);
+                parser.parse();
+                System.out.println("RDB file loaded successfully.");
             }
         }
 
