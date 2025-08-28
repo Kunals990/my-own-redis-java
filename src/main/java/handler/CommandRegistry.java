@@ -26,7 +26,8 @@ public class CommandRegistry {
             Map.entry("INFO",new INFOcommand()),
             Map.entry("REPLCONF",new REPLCONFcommand()),
             Map.entry("PSYNC",new PSYNCcommand()),
-            Map.entry("WAIT",new WAITcommand())
+            Map.entry("WAIT",new WAITcommand()),
+            Map.entry("CONFIG",new CONFIGcommand())
     );
 
     public static Command getCommand(String name) {

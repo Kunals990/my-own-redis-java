@@ -1,5 +1,6 @@
 package main;
 import config.ReplicationInfo;
+import config.ServerConfig;
 import config.ServerContext;
 import handler.ClientState;
 import handler.CommandHandler;
@@ -61,6 +62,15 @@ public class Main {
                     System.err.println("Error: Invalid master port number in --replicaof.");
                     return;
                 }
+                i++;
+            }
+
+            else if(args[i].equals("--dir") && i + 1 < args.length){
+                ServerConfig.getInstance().setDir(args[i + 1]);
+                i++;
+            }
+            else if(args[i].equals("--dbfilename") && i + 1 < args.length){
+                ServerConfig.getInstance().setDbfilename(args[i + 1]);
                 i++;
             }
         }
