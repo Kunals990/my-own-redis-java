@@ -25,6 +25,8 @@ public class KEYScommand implements Command {
             response.append(key).append("\r\n");
         }
 
+        System.out.println(keys);
+
         return response.toString();
     }
 }
