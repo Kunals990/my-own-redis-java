@@ -32,6 +32,19 @@ public class SubscriptionManager {
         return subscriptions.size();
     }
 
+    public synchronized int unsubscribe(String channel, SocketChannel client) {
+        channelSubscriptions.computeIfAbsent(channel, k -> new ArrayList<>()).remove(client);
+
+        List<String> subscriptions = clientSubscriptions.computeIfAbsent(client, k -> new ArrayList<>());
+        if (!subscriptions.contains(channel)) {
+            subscriptions.remove(channel);
+        }
+
+        return subscriptions.size();
+    }
+
+
+
     public synchronized int getSubscriberCount(String channel) {
         List<SocketChannel> subscribers = channelSubscriptions.get(channel);
         return (subscribers != null) ? subscribers.size() : 0;

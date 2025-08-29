@@ -4,6 +4,7 @@ import handler.commands.keys.KEYScommand;
 import handler.commands.lists.*;
 import handler.commands.pubsub.PUBLISHcommand;
 import handler.commands.pubsub.SUBSCRIBEcommand;
+import handler.commands.pubsub.UNSUBSCRIBEcommand;
 import handler.commands.server.*;
 import handler.commands.streams.XADDcommand;
 import handler.commands.streams.XRANGEcommand;
@@ -43,7 +44,8 @@ public class CommandRegistry {
             Map.entry("CONFIG",new CONFIGcommand()),
             Map.entry("KEYS",new KEYScommand()),
             Map.entry("SUBSCRIBE",new SUBSCRIBEcommand()),
-            Map.entry("PUBLISH",new PUBLISHcommand())
+            Map.entry("PUBLISH",new PUBLISHcommand()),
+            Map.entry("UNSUBSCRIBE",new UNSUBSCRIBEcommand())
     );
 
     public static Command getCommand(String name) {
