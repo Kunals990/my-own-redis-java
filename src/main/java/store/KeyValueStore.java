@@ -59,16 +59,16 @@ public class KeyValueStore {
         } else if (existingValue instanceof TreeSet) {
             sortedSet = (TreeSet<MemberScore>) existingValue;
         } else {
-            return 0;
+            throw new ClassCastException("Operation against a key holding the wrong kind of value");
         }
 
         MemberScore newMember = new MemberScore(member, score);
 
-        sortedSet.remove(newMember);
+        boolean wasPresent = sortedSet.remove(newMember);
 
         sortedSet.add(newMember);
 
-        return 1;
+        return wasPresent ? 0 : 1;
     }
 }
 
