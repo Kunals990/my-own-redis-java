@@ -17,7 +17,10 @@ public class UNSUBSCRIBEcommand implements Command {
                 commandContext.clientChannel
         );
 
-        commandContext.clientState.inSubscribedMode = true;
+        if (subscriptionCount == 0) {
+            commandContext.clientState.inSubscribedMode = false;
+        }
+
         String channelResp = "$" + channelName.length() + "\r\n" + channelName + "\r\n";
         String countResp = ":" + subscriptionCount + "\r\n";
 

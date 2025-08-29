@@ -33,8 +33,10 @@ public class SubscriptionManager {
     }
 
     public synchronized int unsubscribe(String channel, SocketChannel client) {
-        channelSubscriptions.computeIfAbsent(channel, k -> new ArrayList<>()).remove(client);
-
+        List<SocketChannel> subscribers = channelSubscriptions.get(channel);
+        if (subscribers != null) {
+            subscribers.remove(client);
+        }
         List<String> subscriptions = clientSubscriptions.computeIfAbsent(client, k -> new ArrayList<>());
         subscriptions.remove(channel);
 
