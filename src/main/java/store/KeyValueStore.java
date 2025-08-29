@@ -79,6 +79,24 @@ public class KeyValueStore {
 
         return wasPresent ? 0 : 1;
     }
+
+    public Integer zrank(String key, String member) {
+        Object value = store.get(key);
+
+        if (value == null || !(value instanceof TreeSet)) {
+            return null;
+        }
+
+        TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+        int rank = 0;
+        for (MemberScore ms : sortedSet) {
+            if (ms.getMember().equals(member)) {
+                return rank;
+            }
+            rank++;
+        }
+        return null;
+    }
 }
 
 
