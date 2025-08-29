@@ -108,10 +108,14 @@ public class KeyValueStore {
         TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
         int size = sortedSet.size();
 
-        if (start < 0) start += size;
-        if (stop < 0) stop += size;
+        if (start < 0) {
+            start = Math.max(0, start + size);
+        }
+        if (stop < 0) {
+            stop += size;
+        }
 
-        if (start < 0 || start >= size || start > stop) {
+        if ( start >= size || start > stop) {
             return new ArrayList<>();
         }
 
