@@ -6,7 +6,7 @@ import java.util.*;
 
 public class KeyValueStore {
     private static final KeyValueStore INSTANCE = new KeyValueStore();
-    private final Map<String, ValueWithExpiry> store = new HashMap<>();
+    private final Map<String, Object> store = new HashMap<>();
 
     private KeyValueStore() {}
 
@@ -19,28 +19,58 @@ public class KeyValueStore {
     }
 
     public String get(String key) {
-        ValueWithExpiry pair = store.get(key);
-        if (pair == null) {
+        Object value = store.get(key);
+
+        if (value == null || !(value instanceof ValueWithExpiry)) {
             return null;
         }
+        ValueWithExpiry valueWithExpiry = (ValueWithExpiry) value;
 
-        if (pair.isExpired()) {
+        if (valueWithExpiry.isExpired()) {
             store.remove(key);
             return null;
         }
-        return pair.getValue();
+        return valueWithExpiry.getValue();
     }
 
+
     public Set<String> getAllKeys() {
-        store.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        store.entrySet().removeIf(entry -> {
+            Object value = entry.getValue();
+            if (value instanceof ValueWithExpiry) {
+                return ((ValueWithExpiry) value).isExpired();
+            }
+            return false;
+        });
         return store.keySet();
     }
 
     public void clear() {
         store.clear();
     }
-}
 
+    public int zadd(String key, double score, String member) {
+        Object existingValue = store.get(key);
+        TreeSet<MemberScore> sortedSet;
+
+        if (existingValue == null) {
+            sortedSet = new TreeSet<>();
+            store.put(key, sortedSet);
+        } else if (existingValue instanceof TreeSet) {
+            sortedSet = (TreeSet<MemberScore>) existingValue;
+        } else {
+            return 0;
+        }
+
+        MemberScore newMember = new MemberScore(member, score);
+
+        sortedSet.remove(newMember);
+
+        sortedSet.add(newMember);
+
+        return 1;
+    }
+}
 
 
 class ValueWithExpiry {
