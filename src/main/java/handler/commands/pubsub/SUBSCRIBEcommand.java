@@ -9,8 +9,16 @@ public class SUBSCRIBEcommand implements Command {
     @Override
     public String execute(CommandContext commandContext) throws IOException {
         if (commandContext.args.size() < 2) return "-ERR wrong number of arguments for 'SUBSCRIBE'\r\n";
-        String client = commandContext.args.get(1);
+        String channelName = commandContext.args.get(1);
 
-        return "*3\r\n$9\r\nsubscribe\r\n$"+client.length()+"\r\n"+client+"\r\n:1\r\n";
+        int subscriptionCount = SubscriptionManager.getInstance().subscribe(
+                channelName,
+                commandContext.clientChannel
+        );
+
+        String channelResp = "$" + channelName.length() + "\r\n" + channelName + "\r\n";
+        String countResp = ":" + subscriptionCount + "\r\n";
+
+        return "*3\r\n$9\r\nsubscribe\r\n" + channelResp + countResp;
     }
 }
