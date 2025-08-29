@@ -140,6 +140,24 @@ public class KeyValueStore {
         TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
         return sortedSet.size();
     }
+
+    public Double zscore(String key, String member) {
+        Object value = store.get(key);
+
+        if (value == null || !(value instanceof TreeSet)) {
+            return null;
+        }
+
+        TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+
+        for (MemberScore ms : sortedSet) {
+            if (ms.getMember().equals(member)) {
+                return ms.getScore();
+            }
+        }
+
+        return null;
+    }
 }
 
 
