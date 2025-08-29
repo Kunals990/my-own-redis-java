@@ -13,12 +13,19 @@ public class CommandHandler {
             "SET","DEL","LPUSH","RPUSH","XADD"
     );
 
+    private static final Set<String> ALLOWED_IN_SUBSCRIBED_MODE = Set.of(
+            "SUBSCRIBE", "UNSUBSCRIBE", "PSUBSCRIBE", "PUNSUBSCRIBE", "PING", "QUIT"
+    );
+
     public static String handle(List<String> args, ClientState clientState,SocketChannel clientChannel) throws IOException {
         if (args.isEmpty()) {
             return "-ERR Empty command\r\n";
         }
 
         String commandName = args.get(0).toUpperCase();
+        if (clientState.inSubscribedMode && !ALLOWED_IN_SUBSCRIBED_MODE.contains(commandName)) {
+            return "-ERR Can't execute '" + args.get(0).toLowerCase() + "': only (P|S)SUBSCRIBE / (P|S)UNSUBSCRIBE / PING / QUIT / RESET are allowed in this context\r\n";
+        }
         Command command = CommandRegistry.getCommand(commandName);
         CommandContext context = new CommandContext(args, clientChannel, clientState);
 

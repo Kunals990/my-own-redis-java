@@ -10,4 +10,6 @@ public class ClientState {
     public boolean inTransaction = false;
     public Queue<List<String>> transactionQueue = new LinkedList<>();
 
+    public boolean inSubscribedMode = false;
+
 }
