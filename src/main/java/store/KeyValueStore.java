@@ -158,6 +158,27 @@ public class KeyValueStore {
 
         return null;
     }
+
+    public int zrem(String key, String member) {
+        Object value = store.get(key);
+
+        if (value == null || !(value instanceof TreeSet)) {
+            return 0;
+        }
+
+        TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+
+        Iterator<MemberScore> iterator = sortedSet.iterator();
+        while (iterator.hasNext()) {
+            MemberScore ms = iterator.next();
+            if (ms.getMember().equals(member)) {
+                iterator.remove();
+                return 1;
+            }
+        }
+
+        return 0;
+    }
 }
 
 

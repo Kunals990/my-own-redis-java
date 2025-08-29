@@ -51,7 +51,8 @@ public class CommandRegistry {
             Map.entry("ZRANK",new ZRANKcommand()),
             Map.entry("ZRANGE",new ZRANGEcommand()),
             Map.entry("ZCARD",new ZCARDcommand()),
-            Map.entry("ZSCORE",new ZSCOREcommand())
+            Map.entry("ZSCORE",new ZSCOREcommand()),
+            Map.entry("ZREM",new ZREMcommand())
     );
 
     public static Command getCommand(String name) {
