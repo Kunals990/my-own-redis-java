@@ -97,6 +97,36 @@ public class KeyValueStore {
         }
         return null;
     }
+
+    public List<String> zrange(String key, int start, int stop) {
+        Object value = store.get(key);
+
+        if (value == null || !(value instanceof TreeSet)) {
+            return new ArrayList<>();
+        }
+
+        TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+        int size = sortedSet.size();
+
+        if (start < 0) start += size;
+        if (stop < 0) stop += size;
+
+        if (start < 0 || start >= size || start > stop) {
+            return new ArrayList<>();
+        }
+
+        if (stop >= size) stop = size - 1;
+
+        List<MemberScore> sortedList = new ArrayList<>(sortedSet);
+        List<MemberScore> range = sortedList.subList(start, stop + 1);
+
+        List<String> result = new ArrayList<>();
+        for (MemberScore ms : range) {
+            result.add(ms.getMember());
+        }
+
+        return result;
+    }
 }
 
 
