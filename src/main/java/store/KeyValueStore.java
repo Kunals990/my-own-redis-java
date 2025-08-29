@@ -131,6 +131,15 @@ public class KeyValueStore {
 
         return result;
     }
+
+    public int zcard(String key) {
+        Object value = store.get(key);
+        if (value == null || !(value instanceof TreeSet)) {
+            return 0;
+        }
+        TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+        return sortedSet.size();
+    }
 }
 
 

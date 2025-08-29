@@ -7,6 +7,7 @@ import handler.commands.pubsub.SUBSCRIBEcommand;
 import handler.commands.pubsub.UNSUBSCRIBEcommand;
 import handler.commands.server.*;
 import handler.commands.sets.ZADDcommand;
+import handler.commands.sets.ZCARDcommand;
 import handler.commands.sets.ZRANGEcommand;
 import handler.commands.sets.ZRANKcommand;
 import handler.commands.streams.XADDcommand;
@@ -51,7 +52,8 @@ public class CommandRegistry {
             Map.entry("UNSUBSCRIBE",new UNSUBSCRIBEcommand()),
             Map.entry("ZADD",new ZADDcommand()),
             Map.entry("ZRANK",new ZRANKcommand()),
-            Map.entry("ZRANGE",new ZRANGEcommand())
+            Map.entry("ZRANGE",new ZRANGEcommand()),
+            Map.entry("ZCARD",new ZCARDcommand())
     );
 
     public static Command getCommand(String name) {
