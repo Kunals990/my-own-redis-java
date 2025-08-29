@@ -36,4 +36,8 @@ public class SubscriptionManager {
         List<SocketChannel> subscribers = channelSubscriptions.get(channel);
         return (subscribers != null) ? subscribers.size() : 0;
     }
+
+    public synchronized List<SocketChannel> getSubscribers(String channel) {
+        return new ArrayList<>(channelSubscriptions.getOrDefault(channel, new ArrayList<>()));
+    }
 }
