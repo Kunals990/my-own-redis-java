@@ -36,9 +36,7 @@ public class SubscriptionManager {
         channelSubscriptions.computeIfAbsent(channel, k -> new ArrayList<>()).remove(client);
 
         List<String> subscriptions = clientSubscriptions.computeIfAbsent(client, k -> new ArrayList<>());
-        if (!subscriptions.contains(channel)) {
-            subscriptions.remove(channel);
-        }
+        subscriptions.remove(channel);
 
         return subscriptions.size();
     }
