@@ -27,6 +27,7 @@ public class GeoHash {
     public static long encode(double latitude, double longitude) {
         double latFactor = Math.pow(2, 26) / LATITUDE_RANGE;
         double lonFactor = Math.pow(2, 26) / LONGITUDE_RANGE;
+
         int latInt = (int)((latitude - MIN_LATITUDE) * latFactor);
         int lonInt = (int)((longitude - MIN_LONGITUDE) * lonFactor);
 
