@@ -32,11 +32,12 @@ public class MemberScore implements Comparable<MemberScore> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MemberScore that = (MemberScore) o;
-        return Objects.equals(member, that.member);
+        return Double.compare(that.score, score) == 0 &&
+                Objects.equals(member, that.member);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(member);
+        return Objects.hash(member, score);
     }
 }
