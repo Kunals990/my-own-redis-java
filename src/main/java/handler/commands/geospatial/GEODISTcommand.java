@@ -30,9 +30,11 @@ public class GEODISTcommand implements Command {
         }
         GeoHash.Coordinates coords2 = GeoHash.decode(score2.longValue());
 
-        double distance = GeoHash.distance(coords1.latitude, coords1.longitude, coords2.latitude, coords2.longitude);
+//        double distance = GeoHash.distance(coords1.latitude, coords1.longitude, coords2.latitude, coords2.longitude);
 
-        String distStr = String.format("%.4f", distance);
-        return "$" + distStr.length() + "\r\n" + distStr + "\r\n";
+//        String distStr = String.format("%.4f", distance);
+//        return "$" + distStr.length() + "\r\n" + distStr + "\r\n";
+
+        return "$-1\r\n";
     }
 }

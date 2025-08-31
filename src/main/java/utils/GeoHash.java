@@ -27,13 +27,10 @@ public class GeoHash {
     public static long encode(double latitude, double longitude) {
         double normalizedLatitude = Math.pow(2, 26) * (latitude - MIN_LATITUDE) / LATITUDE_RANGE;
         double normalizedLongitude = Math.pow(2, 26) * (longitude - MIN_LONGITUDE) / LONGITUDE_RANGE;
-
         int latInt = (int) normalizedLatitude;
         int lonInt = (int) normalizedLongitude;
-
         return interleave(latInt, lonInt);
     }
-
     public static class Coordinates {
         public final double latitude;
         public final double longitude;
@@ -61,7 +58,6 @@ public class GeoHash {
 
         double latMin = MIN_LATITUDE + LATITUDE_RANGE * (latInt / factor);
         double latMax = MIN_LATITUDE + LATITUDE_RANGE * ((latInt + 1) / factor);
-
         double lonMin = MIN_LONGITUDE + LONGITUDE_RANGE * (lonInt / factor);
         double lonMax = MIN_LONGITUDE + LONGITUDE_RANGE * ((lonInt + 1) / factor);
 
