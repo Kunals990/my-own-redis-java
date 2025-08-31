@@ -3,7 +3,7 @@ package handler.commands.geospatial;
 import handler.Command;
 import handler.CommandContext;
 import store.KeyValueStore;
-import utils.GeoHash; // <-- Add this import
+import utils.GeoHash;
 
 import java.io.IOException;
 
