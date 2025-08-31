@@ -1,6 +1,7 @@
 package handler;
 
 import handler.commands.geospatial.GEOADDcommand;
+import handler.commands.geospatial.GEOPOScommand;
 import handler.commands.keys.KEYScommand;
 import handler.commands.lists.*;
 import handler.commands.pubsub.PUBLISHcommand;
@@ -54,7 +55,8 @@ public class CommandRegistry {
             Map.entry("ZCARD",new ZCARDcommand()),
             Map.entry("ZSCORE",new ZSCOREcommand()),
             Map.entry("ZREM",new ZREMcommand()),
-            Map.entry("GEOADD",new GEOADDcommand())
+            Map.entry("GEOADD",new GEOADDcommand()),
+            Map.entry("GEOPOS",new GEOPOScommand())
     );
 
     public static Command getCommand(String name) {

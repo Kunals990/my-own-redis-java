@@ -179,6 +179,16 @@ public class KeyValueStore {
 
         return 0;
     }
+
+    public boolean geoMemberExists(String key, String member) {
+        Object value = store.get(key);
+        if (value == null || !(value instanceof TreeSet)) {
+            return false;
+        }
+
+        TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+        return sortedSet.contains(new MemberScore(member, 0.0));
+    }
 }
 
 
