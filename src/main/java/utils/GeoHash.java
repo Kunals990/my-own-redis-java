@@ -9,6 +9,8 @@ public class GeoHash {
     private static final double LATITUDE_RANGE = MAX_LATITUDE - MIN_LATITUDE;
     private static final double LONGITUDE_RANGE = MAX_LONGITUDE - MIN_LONGITUDE;
 
+    private static final double EARTH_RADIUS_METERS = 6372797.560856;
+
     private static long spreadInt32ToInt64(int v) {
         long result = v & 0xFFFFFFFFL;
         result = (result | (result << 16)) & 0x0000FFFF0000FFFFL;
@@ -71,5 +73,23 @@ public class GeoHash {
         double finalLon = (lonMin + lonMax) / 2;
 
         return new Coordinates(finalLat, finalLon);
+    }
+
+    public static double distance(double lat1, double lon1, double lat2, double lon2) {
+        double lat1Rad = Math.toRadians(lat1);
+        double lon1Rad = Math.toRadians(lon1);
+        double lat2Rad = Math.toRadians(lat2);
+        double lon2Rad = Math.toRadians(lon2);
+
+        double dLat = lat2Rad - lat1Rad;
+        double dLon = lon2Rad - lon1Rad;
+
+        double a = Math.pow(Math.sin(dLat / 2), 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                        Math.pow(Math.sin(dLon / 2), 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return EARTH_RADIUS_METERS * c;
     }
 }
