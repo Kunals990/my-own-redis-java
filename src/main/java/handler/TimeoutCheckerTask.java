@@ -20,7 +20,7 @@ public class TimeoutCheckerTask implements Runnable {
                 if (client.timeoutMillis > 0 && (now - client.startTime >= client.timeoutMillis)) {
                     try {
                         if (client.channel.isOpen()) {
-                            String nullResponse = "$-1\r\n";
+                            String nullResponse = "*-1\r\n";
                             client.channel.write(ByteBuffer.wrap(nullResponse.getBytes()));
                         }
                     } catch (IOException e) {
