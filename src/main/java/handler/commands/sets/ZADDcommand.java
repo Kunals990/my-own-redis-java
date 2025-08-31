@@ -13,14 +13,22 @@ public class ZADDcommand implements Command {
             return "-ERR wrong number of arguments for 'zadd' command\r\n";
         }
         String key = commandContext.args.get(1);
+        String scoreStr = commandContext.args.get(2);
         String member = commandContext.args.get(3);
-        double score;
+
+        double scoreForStorage;
         try {
-            score = Double.parseDouble(commandContext.args.get(2));
+            long geohash = Long.parseLong(scoreStr);
+            scoreForStorage = Double.longBitsToDouble(geohash);
         } catch (NumberFormatException e) {
-            return "-ERR value is not a valid float\r\n";
+            try {
+                scoreForStorage = Double.parseDouble(scoreStr);
+            } catch (NumberFormatException e2) {
+                return "-ERR value is not a valid float\r\n";
+            }
         }
-        int newMembers = KeyValueStore.getInstance().zadd(key, score, member);
+
+        int newMembers = KeyValueStore.getInstance().zadd(key, scoreForStorage, member);
         return ":" + newMembers + "\r\n";
     }
 }

@@ -23,13 +23,11 @@ public class GEOPOScommand implements Command {
 
         for (int i = 2; i < commandContext.args.size(); i++) {
             String member = commandContext.args.get(i);
-
-            // 1. Get the member's score (the geohash) from the store
             Double score = KeyValueStore.getInstance().zscore(key, member);
 
             if (score != null) {
-                GeoHash.Coordinates coords = GeoHash.decode(score.longValue());
-
+                long geoCode = Double.doubleToRawLongBits(score);
+                GeoHash.Coordinates coords = GeoHash.decode(geoCode);
                 String lonStr = String.valueOf(coords.longitude);
                 String latStr = String.valueOf(coords.latitude);
 
