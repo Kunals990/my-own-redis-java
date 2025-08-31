@@ -67,9 +67,10 @@ public class GeoHash {
     public static Coordinates decode(long geoCode) {
         int latInt = compactInt64ToInt32(geoCode);
         int lonInt = compactInt64ToInt32(geoCode >> 1);
-        double latitude = MIN_LATITUDE + (latInt / FACTOR) * LATITUDE_RANGE;
-        double longitude = MIN_LONGITUDE + (lonInt / FACTOR) * LONGITUDE_RANGE;
+        double latitude = MIN_LATITUDE + ((latInt + 0.5) / FACTOR) * LATITUDE_RANGE;
+        double longitude = MIN_LONGITUDE + ((lonInt + 0.5) / FACTOR) * LONGITUDE_RANGE;
 
         return new Coordinates(latitude, longitude);
     }
+
 }
