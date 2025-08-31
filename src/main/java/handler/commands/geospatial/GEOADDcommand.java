@@ -3,6 +3,7 @@ package handler.commands.geospatial;
 import handler.Command;
 import handler.CommandContext;
 import store.KeyValueStore;
+import utils.GeoHash;
 
 import java.io.IOException;
 
@@ -38,9 +39,8 @@ public class GEOADDcommand implements Command {
         String key = commandContext.args.get(1);
         String member = commandContext.args.get(4);
 
-        double score = 0.0;
-
-        int newMembers = KeyValueStore.getInstance().zadd(key, score, member);
+        long geohashScore = GeoHash.encode(latitude, longitude);
+        int newMembers = KeyValueStore.getInstance().zadd(key, geohashScore, member);
 
         return ":" + newMembers + "\r\n";
     }
