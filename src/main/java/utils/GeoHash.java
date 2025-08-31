@@ -59,10 +59,17 @@ public class GeoHash {
     public static Coordinates decode(long geoCode) {
         int latInt = compactInt64ToInt32(geoCode);
         int lonInt = compactInt64ToInt32(geoCode >> 1);
+        double factor = (double) (1L << 26);
 
-        double lat = MIN_LATITUDE + LATITUDE_RANGE * ((double) latInt / (1L << 26));
-        double lon = MIN_LONGITUDE + LONGITUDE_RANGE * ((double) lonInt / (1L << 26));
+        double latMin = MIN_LATITUDE + LATITUDE_RANGE * (latInt / factor);
+        double latMax = MIN_LATITUDE + LATITUDE_RANGE * ((latInt + 1) / factor);
 
-        return new Coordinates(lat, lon);
+        double lonMin = MIN_LONGITUDE + LONGITUDE_RANGE * (lonInt / factor);
+        double lonMax = MIN_LONGITUDE + LONGITUDE_RANGE * ((lonInt + 1) / factor);
+
+        double finalLat = (latMin + latMax) / 2;
+        double finalLon = (lonMin + lonMax) / 2;
+
+        return new Coordinates(finalLat, finalLon);
     }
 }
