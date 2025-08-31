@@ -3,6 +3,7 @@ package handler.commands.geospatial;
 import handler.Command;
 import handler.CommandContext;
 import store.KeyValueStore;
+import utils.GeoHash;
 
 import java.io.IOException;
 
@@ -21,13 +22,16 @@ public class GEOPOScommand implements Command {
 
         for (int i = 2; i < commandContext.args.size(); i++) {
             String member = commandContext.args.get(i);
+            Double score = KeyValueStore.getInstance().zscore(key, member);
+            if (score != null) {
+                GeoHash.Coordinates coords = GeoHash.decode(score.longValue());
 
-            boolean exists = KeyValueStore.getInstance().geoMemberExists(key, member);
+                String lonStr = String.valueOf(coords.longitude);
+                String latStr = String.valueOf(coords.latitude);
 
-            if (exists) {
                 response.append("*2\r\n");
-                response.append("$1\r\n0\r\n");
-                response.append("$1\r\n0\r\n");
+                response.append("$").append(lonStr.length()).append("\r\n").append(lonStr).append("\r\n");
+                response.append("$").append(latStr.length()).append("\r\n").append(latStr).append("\r\n");
             } else {
                 response.append("*-1\r\n");
             }

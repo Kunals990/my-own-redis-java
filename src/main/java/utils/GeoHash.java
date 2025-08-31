@@ -35,4 +35,34 @@ public class GeoHash {
 
         return interleave(latInt, lonInt);
     }
+
+    public static class Coordinates {
+        public final double latitude;
+        public final double longitude;
+
+        Coordinates(double latitude, double longitude) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+    }
+
+    private static int compactInt64ToInt32(long v) {
+        v &= 0x5555555555555555L;
+        v = (v | (v >> 1))  & 0x3333333333333333L;
+        v = (v | (v >> 2))  & 0x0F0F0F0F0F0F0F0FL;
+        v = (v | (v >> 4))  & 0x00FF00FF00FF00FFL;
+        v = (v | (v >> 8))  & 0x0000FFFF0000FFFFL;
+        v = (v | (v >> 16)) & 0x00000000FFFFFFFFL;
+        return (int) v;
+    }
+
+    public static Coordinates decode(long geoCode) {
+        int latInt = compactInt64ToInt32(geoCode);
+        int lonInt = compactInt64ToInt32(geoCode >> 1);
+
+        double lat = MIN_LATITUDE + LATITUDE_RANGE * ((double) latInt / (1L << 26));
+        double lon = MIN_LONGITUDE + LONGITUDE_RANGE * ((double) lonInt / (1L << 26));
+
+        return new Coordinates(lat, lon);
+    }
 }
