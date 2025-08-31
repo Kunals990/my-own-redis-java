@@ -2,6 +2,7 @@ package handler.commands.geospatial;
 
 import handler.Command;
 import handler.CommandContext;
+import store.KeyValueStore;
 
 import java.io.IOException;
 
@@ -34,6 +35,13 @@ public class GEOADDcommand implements Command {
             return "-ERR invalid latitude argument\r\n";
         }
 
-        return ":1\r\n";
+        String key = commandContext.args.get(1);
+        String member = commandContext.args.get(4);
+
+        double score = 0.0;
+
+        int newMembers = KeyValueStore.getInstance().zadd(key, score, member);
+
+        return ":" + newMembers + "\r\n";
     }
 }
