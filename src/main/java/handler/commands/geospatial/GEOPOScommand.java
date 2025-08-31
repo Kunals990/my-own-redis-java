@@ -3,11 +3,12 @@ package handler.commands.geospatial;
 import handler.Command;
 import handler.CommandContext;
 import store.KeyValueStore;
-import utils.GeoHash;
+import utils.GeoHash; // <-- Add this import
 
 import java.io.IOException;
 
 public class GEOPOScommand implements Command {
+
     @Override
     public String execute(CommandContext commandContext) throws IOException {
         if (commandContext.args.size() < 2) {
@@ -22,7 +23,10 @@ public class GEOPOScommand implements Command {
 
         for (int i = 2; i < commandContext.args.size(); i++) {
             String member = commandContext.args.get(i);
+
+            // 1. Get the member's score (the geohash) from the store
             Double score = KeyValueStore.getInstance().zscore(key, member);
+
             if (score != null) {
                 GeoHash.Coordinates coords = GeoHash.decode(score.longValue());
 
