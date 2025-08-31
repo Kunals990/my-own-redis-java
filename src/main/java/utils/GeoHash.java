@@ -54,16 +54,11 @@ public class GeoHash {
     public static Coordinates decode(long geoCode) {
         int latInt = compactInt64ToInt32(geoCode);
         int lonInt = compactInt64ToInt32(geoCode >> 1);
+
         double factor = Math.pow(2, 26);
+        double latitude = MIN_LATITUDE + LATITUDE_RANGE * ((latInt + 0.5) / factor);
+        double longitude = MIN_LONGITUDE + LONGITUDE_RANGE * ((lonInt + 0.5) / factor);
 
-        double latMin = MIN_LATITUDE + LATITUDE_RANGE * (latInt / factor);
-        double latMax = MIN_LATITUDE + LATITUDE_RANGE * ((latInt + 1) / factor);
-        double lonMin = MIN_LONGITUDE + LONGITUDE_RANGE * (lonInt / factor);
-        double lonMax = MIN_LONGITUDE + LONGITUDE_RANGE * ((lonInt + 1) / factor);
-
-        double finalLat = (latMin + latMax) / 2;
-        double finalLon = (lonMin + lonMax) / 2;
-
-        return new Coordinates(finalLat, finalLon);
+        return new Coordinates(latitude, longitude);
     }
 }
