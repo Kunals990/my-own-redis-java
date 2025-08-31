@@ -61,19 +61,7 @@ public class KeyValueStore {
         } else {
             throw new ClassCastException("Operation against a key holding the wrong kind of value");
         }
-
-        boolean wasPresent=false;
-        MemberScore newMember = new MemberScore(member, score);
-
-        Iterator<MemberScore> iterator = sortedSet.iterator();
-        while (iterator.hasNext()) {
-            MemberScore existingMember = iterator.next();
-            if (existingMember.getMember().equals(member)) {
-                iterator.remove();
-                wasPresent = true;
-                break;
-            }
-        }
+        boolean wasPresent = sortedSet.removeIf(existingMember -> existingMember.getMember().equals(member));
 
         sortedSet.add(new MemberScore(member, score));
 
