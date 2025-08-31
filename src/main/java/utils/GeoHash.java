@@ -5,11 +5,8 @@ public class GeoHash {
     private static final double MAX_LATITUDE = 85.05112878;
     private static final double MIN_LONGITUDE = -180.0;
     private static final double MAX_LONGITUDE = 180.0;
-
     private static final double LATITUDE_RANGE = MAX_LATITUDE - MIN_LATITUDE;
     private static final double LONGITUDE_RANGE = MAX_LONGITUDE - MIN_LONGITUDE;
-
-    private static final double EARTH_RADIUS_METERS = 6372797.560856;
 
     private static long spreadInt32ToInt64(int v) {
         long result = v & 0xFFFFFFFFL;
@@ -24,8 +21,7 @@ public class GeoHash {
     private static long interleave(int x, int y) {
         long xSpread = spreadInt32ToInt64(x);
         long ySpread = spreadInt32ToInt64(y);
-        long yShifted = ySpread << 1;
-        return xSpread | yShifted;
+        return xSpread | (ySpread << 1);
     }
 
     public static long encode(double latitude, double longitude) {
@@ -61,7 +57,7 @@ public class GeoHash {
     public static Coordinates decode(long geoCode) {
         int latInt = compactInt64ToInt32(geoCode);
         int lonInt = compactInt64ToInt32(geoCode >> 1);
-        double factor = (double) (1L << 26);
+        double factor = Math.pow(2, 26);
 
         double latMin = MIN_LATITUDE + LATITUDE_RANGE * (latInt / factor);
         double latMax = MIN_LATITUDE + LATITUDE_RANGE * ((latInt + 1) / factor);
@@ -73,23 +69,5 @@ public class GeoHash {
         double finalLon = (lonMin + lonMax) / 2;
 
         return new Coordinates(finalLat, finalLon);
-    }
-
-    public static double distance(double lat1, double lon1, double lat2, double lon2) {
-        double lat1Rad = Math.toRadians(lat1);
-        double lon1Rad = Math.toRadians(lon1);
-        double lat2Rad = Math.toRadians(lat2);
-        double lon2Rad = Math.toRadians(lon2);
-
-        double dLat = lat2Rad - lat1Rad;
-        double dLon = lon2Rad - lon1Rad;
-
-        double a = Math.pow(Math.sin(dLat / 2), 2) +
-                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-                        Math.pow(Math.sin(dLon / 2), 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return EARTH_RADIUS_METERS * c;
     }
 }
