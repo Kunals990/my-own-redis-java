@@ -123,10 +123,15 @@ public class KeyValueStore {
 
     public Map<String, Double> getAllMembersWithScores(String key) {
         Object value = store.get(key);
-        if (value instanceof ConcurrentSkipListMap) {
+        if (value instanceof TreeSet) {
             @SuppressWarnings("unchecked")
-            Map<String, Double> sortedSet = (Map<String, Double>) value;
-            return sortedSet;
+            TreeSet<MemberScore> sortedSet = (TreeSet<MemberScore>) value;
+
+            Map<String, Double> membersWithScores = new HashMap<>();
+            for (MemberScore ms : sortedSet) {
+                membersWithScores.put(ms.getMember(), ms.getScore());
+            }
+            return membersWithScores;
         }
         return null;
     }
