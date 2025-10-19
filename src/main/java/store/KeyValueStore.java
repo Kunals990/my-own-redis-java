@@ -3,6 +3,7 @@ package store;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class KeyValueStore {
     private static final KeyValueStore INSTANCE = new KeyValueStore();
@@ -118,6 +119,16 @@ public class KeyValueStore {
         }
 
         return result;
+    }
+
+    public Map<String, Double> getAllMembersWithScores(String key) {
+        Object value = store.get(key);
+        if (value instanceof ConcurrentSkipListMap) {
+            @SuppressWarnings("unchecked")
+            Map<String, Double> sortedSet = (Map<String, Double>) value;
+            return sortedSet;
+        }
+        return null;
     }
 
     public int zcard(String key) {
